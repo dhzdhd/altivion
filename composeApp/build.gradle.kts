@@ -10,6 +10,23 @@ plugins {
     alias(libs.plugins.composeHotReload)
 }
 
+fun detectTarget(): String {
+    val hostOs = when (val os = System.getProperty("os.name").lowercase()) {
+        "mac os x" -> "macos"
+        else -> os.split(" ").first()
+    }
+    val hostArch = when (val arch = System.getProperty("os.arch").lowercase()) {
+        "x86_64" -> "amd64"
+        "arm64" -> "aarch64"
+        else -> arch
+    }
+    val renderer = when (hostOs) {
+        "macos" -> "metal"
+        else -> "opengl"
+    }
+    return "${hostOs}-${hostArch}-${renderer}"
+}
+
 kotlin {
     androidTarget {
         compilerOptions {
@@ -34,12 +51,6 @@ kotlin {
         binaries.executable()
     }
     
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-        binaries.executable()
-    }
-    
     sourceSets {
         androidMain.dependencies {
             implementation(compose.preview)
@@ -54,6 +65,9 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+
+            implementation(libs.maplibre.compose)
+            implementation(libs.maplibre.composeMaterial3)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -61,6 +75,13 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+
+            implementation(libs.maplibre.compose)
+            runtimeOnly("org.maplibre.compose:maplibre-native-bindings-jni:0.12.1") {
+                capabilities {
+                    requireCapability("org.maplibre.compose:maplibre-native-bindings-jni-${detectTarget()}")
+                }
+            }
         }
     }
 }
