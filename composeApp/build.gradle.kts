@@ -113,11 +113,11 @@ kotlin {
 }
 
 android {
-    namespace = "com.example.altivion"
+    namespace = "dev.dhzdhd.altivion"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.example.altivion"
+        applicationId = "dev.dhzdhd.altivion"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
@@ -145,11 +145,11 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "com.example.altivion.MainKt"
+        mainClass = "dev.dhzdhd.altivion.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.example.altivion"
+            packageName = "dev.dhzdhd.altivion"
             packageVersion = "1.0.0"
         }
     }
