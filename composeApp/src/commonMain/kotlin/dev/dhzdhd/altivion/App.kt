@@ -27,6 +27,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
+import dev.dhzdhd.altivion.home.components.InteractiveMap
+import dev.dhzdhd.altivion.home.views.HomeView
 import org.jetbrains.compose.resources.painterResource
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.map.MapOptions
@@ -75,40 +77,7 @@ fun App() {
                 }
             }
         ) { contentPadding ->
-            Column(
-                modifier = Modifier.background(Color(0, 0, 0, 0))
-                    .padding(contentPadding).fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                val cameraState = rememberCameraState()
-                val styleState = rememberStyleState()
-                val baseStyle = BaseStyle.Uri("https://tiles.openfreemap.org/styles/liberty")
-
-                Box(modifier = Modifier.fillMaxSize()) {
-                    MaplibreMap(
-                        baseStyle = baseStyle,
-                        cameraState = cameraState,
-                        styleState = styleState,
-                        options = MapOptions(ornamentOptions = OrnamentOptions.OnlyLogo),
-                    )
-                    Box(modifier = Modifier.fillMaxSize().padding(8.dp)) {
-                        DisappearingScaleBar(
-                            metersPerDp = cameraState.metersPerDpAtTarget,
-                            zoom = cameraState.position.zoom,
-                            modifier = Modifier.align(Alignment.TopStart),
-                        )
-                        DisappearingCompassButton(
-                            cameraState, modifier = Modifier.align(Alignment.TopEnd)
-                        )
-                        ExpandingAttributionButton(
-                            cameraState = cameraState,
-                            styleState = styleState,
-                            modifier = Modifier.align(Alignment.BottomEnd),
-                            contentAlignment = Alignment.BottomEnd,
-                        )
-                    }
-                }
-            }
+            HomeView(contentPadding = contentPadding)
         }
     }
 }
