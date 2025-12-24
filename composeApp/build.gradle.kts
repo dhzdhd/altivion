@@ -97,6 +97,7 @@ kotlin {
             api(libs.koin.annotations)
             implementation(libs.arrow.core)
             implementation(libs.arrow.fx.coroutines)
+            implementation(libs.navigation.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
