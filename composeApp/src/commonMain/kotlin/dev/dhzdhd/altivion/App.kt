@@ -1,5 +1,10 @@
 package dev.dhzdhd.altivion
 
+import altivion.composeapp.generated.resources.Res
+import altivion.composeapp.generated.resources.compose_multiplatform
+import altivion.composeapp.generated.resources.home
+import altivion.composeapp.generated.resources.search
+import altivion.composeapp.generated.resources.settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,11 +17,17 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.painterResource
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.map.MapOptions
 import org.maplibre.compose.map.MaplibreMap
@@ -40,9 +51,32 @@ fun App() {
     }
 
     MaterialTheme {
-        Scaffold { contentPadding ->
+        Scaffold(
+            bottomBar = {
+                NavigationBar {
+                    NavigationBarItem(selected = false, onClick = {}, icon = {
+                        Icon(
+                            painter = painterResource(Res.drawable.home),
+                            contentDescription = "Home",
+                        )
+                    }, label = { Text("Home") })
+                    NavigationBarItem(selected = false, onClick = {}, icon = {
+                        Icon(
+                            painter = painterResource(Res.drawable.search),
+                            contentDescription = "Search",
+                        )
+                    }, label = { Text("Search") })
+                    NavigationBarItem(selected = false, onClick = {}, icon = {
+                        Icon(
+                            painter = painterResource(Res.drawable.settings),
+                            contentDescription = "Settings",
+                        )
+                    }, label = { Text("Settings") })
+                }
+            }
+        ) { contentPadding ->
             Column(
-                modifier = Modifier.background(Color(0, 0, 0 ,0))
+                modifier = Modifier.background(Color(0, 0, 0, 0))
                     .padding(contentPadding).fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
