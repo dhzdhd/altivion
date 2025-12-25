@@ -26,29 +26,23 @@ import org.koin.compose.viewmodel.koinViewModel
 
 sealed interface TabPage {
     @Serializable
-    object Home : TabPage {
-        override fun toString(): String = "Home"
-    }
+    data object Home : TabPage
 
     @Serializable
-    object Search : TabPage {
-        override fun toString(): String = "Search"
-    }
+    data object Search : TabPage
 
     @Serializable
-    object Settings : TabPage {
-        override fun toString(): String = "Settings"
-    }
+    data object Settings : TabPage
 
-    companion object
-}
-
-fun TabPage.Companion.valueOf(it: String): TabPage {
-    return when (it) {
-        "Home" -> TabPage.Home
-        "Search" -> TabPage.Search
-        "Settings" -> TabPage.Settings
-        else -> TabPage.Home
+    companion object {
+        fun valueOf(it: String): TabPage {
+            return when (it) {
+                "Home" -> Home
+                "Search" -> Search
+                "Settings" -> Settings
+                else -> Home
+            }
+        }
     }
 }
 
