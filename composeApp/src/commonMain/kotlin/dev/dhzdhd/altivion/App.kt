@@ -13,30 +13,55 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import dev.dhzdhd.altivion.home.viewmodels.HomeViewModel
 import dev.dhzdhd.altivion.home.views.HomeView
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.viewmodel.koinViewModel
 
 sealed interface TabPage {
     @Serializable
-    object Home : TabPage
+    object Home : TabPage {
+        override fun toString(): String = "Home"
+    }
 
     @Serializable
-    object Search : TabPage
+    object Search : TabPage {
+        override fun toString(): String = "Search"
+    }
 
     @Serializable
-    object Settings : TabPage
+    object Settings : TabPage {
+        override fun toString(): String = "Settings"
+    }
+
+    companion object
 }
+
+fun TabPage.Companion.valueOf(it: String): TabPage {
+    return when (it) {
+        "Home" -> TabPage.Home
+        "Search" -> TabPage.Search
+        "Settings" -> TabPage.Settings
+        else -> TabPage.Home
+    }
+}
+
+private val TabPageSaver = Saver<TabPage, String>(
+    save = { it.toString() },
+    restore = { TabPage.valueOf(it) }
+)
 
 @Composable
 @Preview
 fun App() {
     val startPage: TabPage = TabPage.Home
-    var selectedPage by rememberSaveable {
+    var selectedPage by rememberSaveable(stateSaver = TabPageSaver) {
         mutableStateOf(startPage)
     }
     val navController = rememberNavController()
@@ -89,7 +114,10 @@ fun App() {
             }
         ) { contentPadding ->
             NavHost(navController = navController, startDestination = TabPage.Home) {
-                composable<TabPage.Home> { HomeView(contentPadding = contentPadding) }
+                composable<TabPage.Home> {
+                    val viewModel = koinViewModel<HomeViewModel>()
+                    HomeView(viewModel = viewModel, contentPadding = contentPadding)
+                }
                 composable<TabPage.Search> { Text("Search") }
                 composable<TabPage.Settings> { Text("Settings") }
             }
