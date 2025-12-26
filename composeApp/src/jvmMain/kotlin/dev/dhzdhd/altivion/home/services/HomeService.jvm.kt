@@ -1,6 +1,7 @@
 package dev.dhzdhd.altivion.home.services
 
 import arrow.core.Either
+import dev.dhzdhd.altivion.common.AppError
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -14,7 +15,7 @@ import java.util.Locale
 @Serializable
 private data class IpLocation(val latitude: Double, val longitude: Double)
 
-actual fun getLocation(): Either<Throwable, Location> {
+actual fun getLocation(): Either<AppError, Location> {
     val osName = System.getProperty("os.name").lowercase(Locale.getDefault())
     return when {
         osName.contains("win") -> {
@@ -34,7 +35,7 @@ actual fun getLocation(): Either<Throwable, Location> {
     }
 }
 
-private fun getLocationFromIp(): Either<Throwable, Location> = runBlocking {
+private fun getLocationFromIp(): Either<AppError, Location> = runBlocking {
     val client = HttpClient(CIO) {
         install(ContentNegotiation) {
             json()
@@ -48,6 +49,9 @@ private fun getLocationFromIp(): Either<Throwable, Location> = runBlocking {
         Location(response.latitude, response.longitude)
     }.mapLeft {
         client.close()
-        it
+        AppError.NetworkError(
+            message = it.message ?: "",
+            method = "GET"
+        )
     }
 }
