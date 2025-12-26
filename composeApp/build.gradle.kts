@@ -1,8 +1,5 @@
-import com.android.build.api.dsl.androidLibrary
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -91,12 +88,12 @@ kotlin {
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
 
-            implementation(libs.compass.geolocation)
-            implementation(libs.compass.geolocation.mobile)
-            implementation(libs.compass.geolocation.browser)
-            implementation(libs.compass.autocomplete)
-            implementation(libs.compass.autocomplete.mobile)
-            implementation(libs.compass.permissions.mobile)
+//            implementation(libs.compass.geolocation)
+//            implementation(libs.compass.geolocation.mobile)
+//            implementation(libs.compass.geolocation.browser)
+//            implementation(libs.compass.autocomplete)
+//            implementation(libs.compass.autocomplete.mobile)
+//            implementation(libs.compass.permissions.mobile)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -123,8 +120,6 @@ kotlin {
 dependencies {
     add("kspCommonMainMetadata", libs.koin.ksp.compiler)
     add("kspAndroid", libs.koin.ksp.compiler)
-    add("kspIosArm64", libs.koin.ksp.compiler)
-    add("kspIosSimulatorArm64", libs.koin.ksp.compiler)
     add("kspJvm", libs.koin.ksp.compiler)
     add("kspJs", libs.koin.ksp.compiler)
 }
