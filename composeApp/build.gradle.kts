@@ -90,6 +90,13 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
+
+            implementation(libs.compass.geolocation)
+            implementation(libs.compass.geolocation.mobile)
+            implementation(libs.compass.geolocation.browser)
+            implementation(libs.compass.autocomplete)
+            implementation(libs.compass.autocomplete.mobile)
+            implementation(libs.compass.permissions.mobile)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -98,6 +105,7 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
 
+            implementation(libs.ktor.client.cio)
             implementation(libs.maplibre.compose)
             runtimeOnly("org.maplibre.compose:maplibre-native-bindings-jni:0.12.1") {
                 capabilities {
