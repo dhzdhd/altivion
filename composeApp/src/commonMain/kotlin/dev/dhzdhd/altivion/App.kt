@@ -12,6 +12,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -20,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.dhzdhd.altivion.home.viewmodels.HomeViewModel
 import dev.dhzdhd.altivion.home.views.HomeView
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -59,9 +62,11 @@ fun App() {
         mutableStateOf(startPage)
     }
     val navController = rememberNavController()
+    val snackBarHostState = remember { SnackbarHostState() }
 
     MaterialTheme {
         Scaffold(
+            snackbarHost = { SnackbarHost(snackBarHostState) },
             bottomBar = {
                 NavigationBar {
                     NavigationBarItem(
@@ -110,6 +115,12 @@ fun App() {
             NavHost(navController = navController, startDestination = TabPage.Home) {
                 composable<TabPage.Home> {
                     val viewModel = koinViewModel<HomeViewModel>()
+                    LaunchedEffect(Unit) {
+                        viewModel.snackBarEvents.collectLatest {
+                            snackBarHostState.showSnackbar(it)
+                        }
+                    }
+
                     HomeView(viewModel = viewModel, contentPadding = contentPadding)
                 }
                 composable<TabPage.Search> { Text("Search") }

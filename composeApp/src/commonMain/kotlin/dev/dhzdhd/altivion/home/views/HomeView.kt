@@ -20,7 +20,7 @@ fun HomeView(viewModel: HomeViewModel, contentPadding: PaddingValues) {
         modifier = Modifier.background(Color(0, 0, 0, 0))
             .padding(contentPadding).fillMaxSize(),
     ) {
-        InteractiveMap()
+        InteractiveMap(viewModel.airplanes.value)
         ElevatedButton(onClick = {
             viewModel.dispatch(HomeAction.GetAllItems)
         }) {

@@ -9,10 +9,6 @@ import org.koin.core.annotation.Single
 
 @Single
 class HomeRepository(private val httpClient: HttpClient) {
-    fun get(): RouteDTO {
-        return RouteDTO(a = "")
-    }
-
     suspend fun getRoutes(): Either<Throwable, String> {
         return Either.catch {
             httpClient.get("") {

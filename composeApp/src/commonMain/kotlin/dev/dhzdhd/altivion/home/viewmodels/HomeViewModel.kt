@@ -1,12 +1,22 @@
 package dev.dhzdhd.altivion.home.viewmodels
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import arrow.core.Either
 import dev.dhzdhd.altivion.common.Action
 import dev.dhzdhd.altivion.common.Store
+import dev.dhzdhd.altivion.common.Value
 import dev.dhzdhd.altivion.home.models.RouteDTO
 import dev.dhzdhd.altivion.home.repositories.HomeRepository
+import dev.dhzdhd.altivion.home.services.Airplane
+import dev.dhzdhd.altivion.home.services.HomeService
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
 import kotlin.collections.listOf
 
@@ -14,17 +24,41 @@ data class HomeState(val currentLocation: Int) {
 }
 
 sealed interface HomeAction: Action {
-    object GetAllItems: HomeAction
+    data object GetAllItems: HomeAction
+    data class ShowSnackBar(val message: String): HomeAction
 }
 
 @KoinViewModel
-class HomeViewModel(private val repo: HomeRepository): ViewModel(), Store<HomeAction> {
-    private val state = MutableStateFlow<List<RouteDTO>>(listOf())
-    val items = state.asStateFlow()
+class HomeViewModel(private val service: HomeService): ViewModel(), Store<HomeAction> {
+    private val state = MutableStateFlow<Value<List<Airplane>>>(Value.Loading)
+    val airplanes = state.asStateFlow()
+
+    private val _snackBarEvents = MutableSharedFlow<String>()
+    val snackBarEvents = _snackBarEvents.asSharedFlow()
+
+    init {
+        service.getAirplanes(17.3753, 78.4744, 2000.0)
+            .onEach { result ->
+                println("Got data in viewmodel")
+                state.value = when(result) {
+                    is Either.Left -> Value.Error(result.value)
+                    is Either.Right -> Value.Data(result.value)
+                }
+                println(state.value)
+            }
+            .launchIn(viewModelScope)
+    }
 
     override fun dispatch(action: HomeAction) {
         when (action) {
-            is HomeAction.GetAllItems -> println(repo.get())
+            is HomeAction.GetAllItems -> println("")
+            is HomeAction.ShowSnackBar -> showSnackBar(action.message)
+        }
+    }
+
+    fun showSnackBar(message: String) {
+        viewModelScope.launch {
+            _snackBarEvents.emit(message)
         }
     }
 }

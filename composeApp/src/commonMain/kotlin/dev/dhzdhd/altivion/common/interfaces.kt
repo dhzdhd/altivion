@@ -9,7 +9,7 @@ interface Store<in T: Action> {
 sealed interface AppError {
     val message: String
 
-    data class NetworkError(override val message: String, val method: String): AppError
+    data class NetworkError(override val message: String, val error: Throwable): AppError
     data class UnknownError(override val message: String): AppError
 }
 
