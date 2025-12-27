@@ -8,6 +8,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.koin.core.annotation.Single
+import org.maplibre.compose.location.LocationProvider
 import kotlin.experimental.ExpectRefinement
 
 
@@ -37,7 +38,7 @@ class HomeService(private val api: AirplanesLiveRouteAPI) {
                         Airplane(airplane.lon, airplane.lat, airplane.airframe ?: "Unknown", airplane.ident ?: "Unknown")
                     }
                 })
-                delay(5000)
+                delay(10000)
             }
         }
     }

@@ -6,11 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -20,7 +16,6 @@ import dev.dhzdhd.altivion.home.services.Airplane
 import org.jetbrains.compose.resources.painterResource
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.expressions.dsl.const
-import org.maplibre.compose.expressions.dsl.feature
 import org.maplibre.compose.expressions.dsl.format
 import org.maplibre.compose.expressions.dsl.image
 import org.maplibre.compose.expressions.dsl.offset
@@ -34,7 +29,7 @@ import org.maplibre.compose.material3.DisappearingScaleBar
 import org.maplibre.compose.material3.ExpandingAttributionButton
 import org.maplibre.compose.sources.GeoJsonData
 import org.maplibre.compose.sources.GeoJsonOptions
-import org.maplibre.compose.sources.GeoJsonSource
+import org.maplibre.compose.sources.rememberGeoJsonSource
 import org.maplibre.compose.style.BaseStyle
 import org.maplibre.compose.style.rememberStyleState
 import org.maplibre.compose.util.ClickResult
@@ -57,7 +52,6 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
         ) {
             when (airplaneValue) {
                 is Value.Data -> {
-                    println(airplaneValue.data)
                     val marker = painterResource(Res.drawable.home)
                     val features = airplaneValue.data.map { airplane ->
                         val point =
@@ -65,31 +59,27 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
                         Feature(geometry = point, properties = airplane)
                     }
                     val featureCollection = FeatureCollection(features)
-                    val geoJsonSource = GeoJsonSource(
-                        "airplanes",
-                        GeoJsonData.Features(featureCollection),
-                        GeoJsonOptions()
+                    val source = rememberGeoJsonSource(
+                        data = GeoJsonData.Features(featureCollection),
+                        options = GeoJsonOptions(minZoom = 0)
                     )
 
                     SymbolLayer(
                         id = "airplanes",
-                        source = geoJsonSource,
+                        source = source,
                         onClick = { features ->
                             ClickResult.Consume
                         },
                         iconImage = image(marker),
+                        iconAllowOverlap = const(true),
                         textField =
-                            format(
-                                span(image("railway")),
-                            ),
-                        textFont = const(listOf("Noto Sans Regular")),
-                        textColor = const(MaterialTheme.colorScheme.onBackground),
+                            format(span("Hello World")),
+                        textColor = const(MaterialTheme.colorScheme.error),
                         textOffset = offset(0.em, 0.6.em),
                     )
                 }
 
                 else -> {
-                    // Do nothing for now
                 }
             }
         }
