@@ -4,11 +4,14 @@ import altivion.composeapp.generated.resources.Res
 import altivion.composeapp.generated.resources.home
 import altivion.composeapp.generated.resources.search
 import altivion.composeapp.generated.resources.settings
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -22,6 +25,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.dhzdhd.altivion.home.viewmodels.HomeViewModel
 import dev.dhzdhd.altivion.home.views.HomeView
+import dev.dhzdhd.altivion.search.viewmodels.SearchViewModel
+import dev.dhzdhd.altivion.search.views.SearchView
+import dev.dhzdhd.altivion.settings.viewmodels.SettingsViewModel
+import dev.dhzdhd.altivion.settings.views.SettingsView
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.painterResource
@@ -54,6 +61,7 @@ private val TabPageSaver = Saver<TabPage, String>(
     restore = { TabPage.valueOf(it) }
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
 fun App() {
@@ -67,6 +75,10 @@ fun App() {
     MaterialTheme {
         Scaffold(
             snackbarHost = { SnackbarHost(snackBarHostState) },
+            topBar = {
+                if (selectedPage !is TabPage.Home)
+                    MediumTopAppBar(title = { Text(selectedPage.toString()) })
+            },
             bottomBar = {
                 NavigationBar {
                     NavigationBarItem(
@@ -123,8 +135,26 @@ fun App() {
 
                     HomeView(viewModel = viewModel, contentPadding = contentPadding)
                 }
-                composable<TabPage.Search> { Text("Search") }
-                composable<TabPage.Settings> { Text("Settings") }
+                composable<TabPage.Search> {
+                    val viewModel = koinViewModel<SearchViewModel>()
+                    LaunchedEffect(Unit) {
+                        viewModel.snackBarEvents.collectLatest {
+                            snackBarHostState.showSnackbar(it)
+                        }
+                    }
+
+                    SearchView(viewModel = viewModel, contentPadding = contentPadding)
+                }
+                composable<TabPage.Settings> {
+                    val viewModel = koinViewModel<SettingsViewModel>()
+                    LaunchedEffect(Unit) {
+                        viewModel.snackBarEvents.collectLatest {
+                            snackBarHostState.showSnackbar(it)
+                        }
+                    }
+
+                    SettingsView(viewModel = viewModel, contentPadding = contentPadding)
+                }
             }
         }
     }
