@@ -82,6 +82,7 @@ kotlin {
             api(libs.koin.annotations)
             implementation(libs.arrow.core)
             implementation(libs.arrow.fx.coroutines)
+            implementation(libs.arrow.core.serialization)
             implementation(libs.navigation.compose)
             implementation(libs.ktor.client.core)
             implementation(libs.kotlinx.coroutines.core)

@@ -93,11 +93,11 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
                         id = "airplanes",
                         source = source,
                         onClick = { features ->
-//                            val airplaneProps = features.first().properties
-//                            val hex =
-//                                airplaneProps?.getValue("hex").toOption().map { it.toString() }
-//                            val airplane = airplaneValue.data.find { it.id == hex.getOrNull() }
-//                            selectedAirplane = airplane
+                            val airplaneProps = features.first().properties
+                            val hex =
+                                airplaneProps?.getValue("id").toOption().map { it.toString() }
+                            val airplane = airplaneValue.data.find { it.id == hex.getOrNull() }
+                            selectedAirplane = airplane
 
                             openBottomSheet = true
                             ClickResult.Consume
@@ -136,7 +136,7 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
                 sheetState = bottomSheetState
             ) {
                 Column {
-//                    Text(selectedAirplane?.airframe?.getOrNull() ?: "Unknown aircraft")
+                    Text(selectedAirplane?.airframe?.getOrNull() ?: "Unknown aircraft")
                 }
             }
         }
