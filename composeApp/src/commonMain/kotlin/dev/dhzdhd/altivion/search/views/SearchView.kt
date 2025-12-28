@@ -31,7 +31,9 @@ fun SearchView(viewModel: SearchViewModel, contentPadding: PaddingValues) {
                 label = { Text("ICAO | IATA | Airport | Airplane") },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             )
-            LazyColumn { }
+            LazyColumn {
+
+            }
         }
     }
 }

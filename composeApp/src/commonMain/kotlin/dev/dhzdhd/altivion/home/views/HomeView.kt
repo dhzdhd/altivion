@@ -14,13 +14,18 @@ import dev.dhzdhd.altivion.home.components.InteractiveMap
 import dev.dhzdhd.altivion.home.viewmodels.HomeAction
 import dev.dhzdhd.altivion.home.viewmodels.HomeViewModel
 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+
 @Composable
 fun HomeView(viewModel: HomeViewModel, contentPadding: PaddingValues) {
+    val airplanes by viewModel.airplanes.collectAsState()
+
     Box(
         modifier = Modifier.background(Color(0, 0, 0, 0))
             .padding(contentPadding).fillMaxSize(),
     ) {
-        InteractiveMap(viewModel.airplanes.value)
+        InteractiveMap(airplanes)
         ElevatedButton(onClick = {
             viewModel.dispatch(HomeAction.GetAllItems)
         }) {

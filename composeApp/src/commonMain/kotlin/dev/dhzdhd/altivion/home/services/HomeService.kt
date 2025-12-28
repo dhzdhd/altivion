@@ -7,6 +7,7 @@ import dev.dhzdhd.altivion.home.repositories.HomeRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.serialization.Serializable
 import org.koin.core.annotation.Single
 import org.maplibre.compose.location.LocationProvider
 import kotlin.experimental.ExpectRefinement
@@ -16,6 +17,7 @@ data class Location(val latitude: Double, val longitude: Double)
 
 expect fun getLocation(): Either<AppError, Location>
 
+@Serializable
 data class Airplane(
     val longitude: Double,
     val latitude: Double,

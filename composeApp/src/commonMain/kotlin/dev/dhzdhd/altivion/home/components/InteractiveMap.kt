@@ -2,13 +2,26 @@ package dev.dhzdhd.altivion.home.components
 
 import altivion.composeapp.generated.resources.Res
 import altivion.composeapp.generated.resources.home
+import altivion.composeapp.generated.resources.plane
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import dev.dhzdhd.altivion.common.Value
@@ -37,11 +50,19 @@ import org.maplibre.spatialk.geojson.Feature
 import org.maplibre.spatialk.geojson.FeatureCollection
 import org.maplibre.spatialk.geojson.Point
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
     val cameraState = rememberCameraState()
     val styleState = rememberStyleState()
     val baseStyle = BaseStyle.Uri("https://tiles.openfreemap.org/styles/liberty")
+
+    var openBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var skipPartiallyExpanded by rememberSaveable { mutableStateOf(false) }
+    val bottomSheetState =
+        rememberModalBottomSheetState(skipPartiallyExpanded = skipPartiallyExpanded)
+
+    val markerPainter = painterResource(Res.drawable.plane)
 
     Box(modifier = Modifier.fillMaxSize()) {
         MaplibreMap(
@@ -52,7 +73,6 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
         ) {
             when (airplaneValue) {
                 is Value.Data -> {
-                    val marker = painterResource(Res.drawable.home)
                     val features = airplaneValue.data.map { airplane ->
                         val point =
                             Point.fromGeoUri("geo:${airplane.latitude},${airplane.longitude}")
@@ -68,17 +88,16 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
                         id = "airplanes",
                         source = source,
                         onClick = { features ->
+                            println(features.first())
                             ClickResult.Consume
                         },
-                        iconImage = image(marker),
+                        iconImage = image(markerPainter, drawAsSdf = true),
+                        iconColor = const(Color.Blue),
+                        iconSize = const(0.041f),
                         iconAllowOverlap = const(true),
-                        textField =
-                            format(span("Hello World")),
-                        textColor = const(MaterialTheme.colorScheme.error),
-                        textOffset = offset(0.em, 0.6.em),
+                        iconIgnorePlacement = const(true),
                     )
                 }
-
                 else -> {
                 }
             }
@@ -97,6 +116,12 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
                 styleState = styleState,
                 modifier = Modifier.align(Alignment.BottomEnd),
                 contentAlignment = Alignment.BottomEnd,
+            )
+        }
+        if (openBottomSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { openBottomSheet = false },
+                sheetState =
             )
         }
     }
