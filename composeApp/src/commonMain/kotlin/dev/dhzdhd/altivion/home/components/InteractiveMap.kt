@@ -4,12 +4,14 @@ import altivion.composeapp.generated.resources.Res
 import altivion.composeapp.generated.resources.home
 import altivion.composeapp.generated.resources.plane
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,6 +26,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import arrow.core.getOrElse
+import arrow.core.toOption
 import dev.dhzdhd.altivion.common.Value
 import dev.dhzdhd.altivion.home.services.Airplane
 import org.jetbrains.compose.resources.painterResource
@@ -61,6 +65,7 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
     var skipPartiallyExpanded by rememberSaveable { mutableStateOf(false) }
     val bottomSheetState =
         rememberModalBottomSheetState(skipPartiallyExpanded = skipPartiallyExpanded)
+    var selectedAirplane by rememberSaveable { mutableStateOf<Airplane?>(null) }
 
     val markerPainter = painterResource(Res.drawable.plane)
 
@@ -88,7 +93,13 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
                         id = "airplanes",
                         source = source,
                         onClick = { features ->
-                            println(features.first())
+//                            val airplaneProps = features.first().properties
+//                            val hex =
+//                                airplaneProps?.getValue("hex").toOption().map { it.toString() }
+//                            val airplane = airplaneValue.data.find { it.id == hex.getOrNull() }
+//                            selectedAirplane = airplane
+
+                            openBottomSheet = true
                             ClickResult.Consume
                         },
                         iconImage = image(markerPainter, drawAsSdf = true),
@@ -98,6 +109,7 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
                         iconIgnorePlacement = const(true),
                     )
                 }
+
                 else -> {
                 }
             }
@@ -121,8 +133,12 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
         if (openBottomSheet) {
             ModalBottomSheet(
                 onDismissRequest = { openBottomSheet = false },
-                sheetState =
-            )
+                sheetState = bottomSheetState
+            ) {
+                Column {
+//                    Text(selectedAirplane?.airframe?.getOrNull() ?: "Unknown aircraft")
+                }
+            }
         }
     }
 }
