@@ -6,9 +6,7 @@ import arrow.core.Either
 import dev.dhzdhd.altivion.common.Action
 import dev.dhzdhd.altivion.common.Store
 import dev.dhzdhd.altivion.common.Value
-import dev.dhzdhd.altivion.home.models.RouteDTO
-import dev.dhzdhd.altivion.home.repositories.HomeRepository
-import dev.dhzdhd.altivion.home.services.Airplane
+import dev.dhzdhd.altivion.home.models.Airplane
 import dev.dhzdhd.altivion.home.services.HomeService
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +16,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
-import kotlin.collections.listOf
 
 data class HomeState(val currentLocation: Int) {
 }

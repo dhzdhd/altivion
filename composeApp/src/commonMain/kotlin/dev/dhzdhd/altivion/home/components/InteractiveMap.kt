@@ -1,42 +1,38 @@
 package dev.dhzdhd.altivion.home.components
 
 import altivion.composeapp.generated.resources.Res
-import altivion.composeapp.generated.resources.home
 import altivion.composeapp.generated.resources.plane
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
-import arrow.core.getOrElse
 import arrow.core.toOption
 import dev.dhzdhd.altivion.common.Value
-import dev.dhzdhd.altivion.home.services.Airplane
+import dev.dhzdhd.altivion.home.models.Airplane
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.maplibre.compose.camera.rememberCameraState
+import org.maplibre.compose.expressions.dsl.Feature.get
+import org.maplibre.compose.expressions.dsl.asNumber
+import org.maplibre.compose.expressions.dsl.feature
 import org.maplibre.compose.expressions.dsl.const
-import org.maplibre.compose.expressions.dsl.format
 import org.maplibre.compose.expressions.dsl.image
-import org.maplibre.compose.expressions.dsl.offset
-import org.maplibre.compose.expressions.dsl.span
+import org.maplibre.compose.expressions.dsl.plus
 import org.maplibre.compose.layers.SymbolLayer
 import org.maplibre.compose.map.MapOptions
 import org.maplibre.compose.map.MaplibreMap
@@ -61,10 +57,7 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
     val styleState = rememberStyleState()
     val baseStyle = BaseStyle.Uri("https://tiles.openfreemap.org/styles/liberty")
 
-    var openBottomSheet by rememberSaveable { mutableStateOf(false) }
-    var skipPartiallyExpanded by rememberSaveable { mutableStateOf(false) }
-    val bottomSheetState =
-        rememberModalBottomSheetState(skipPartiallyExpanded = skipPartiallyExpanded)
+    var openBottomSheetState = rememberSaveable { mutableStateOf(false) }
     var selectedAirplane by rememberSaveable { mutableStateOf<Airplane?>(null) }
 
     val markerPainter = painterResource(Res.drawable.plane)
@@ -94,14 +87,14 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
                         source = source,
                         onClick = { features ->
                             val airplaneProps = features.first().properties
-                            val idOption =
-                                airplaneProps?.getValue("id").toOption().map { it.toString() }
-                            val id = idOption.map { it.trimEnd('"').trimStart('"') }.getOrNull()
-                            val airplane = airplaneValue.data.find { it.id.contentEquals(id) }
+                            val hexOption =
+                                airplaneProps?.getValue("hex").toOption().map { it.toString() }
+                            val hex = hexOption.map { it.trimEnd('"').trimStart('"') }.getOrNull()
+                            val airplane = airplaneValue.data.find { it.hex.contentEquals(hex) }
 
                             selectedAirplane = airplane
 
-                            openBottomSheet = true
+                            openBottomSheetState.value = true
                             ClickResult.Consume
                         },
                         iconImage = image(markerPainter, drawAsSdf = true),
@@ -109,6 +102,7 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
                         iconSize = const(0.041f),
                         iconAllowOverlap = const(true),
                         iconIgnorePlacement = const(true),
+                        iconRotate = get("track").asNumber().plus(const(270.0f))
                     )
                 }
 
@@ -132,15 +126,38 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
                 contentAlignment = Alignment.BottomEnd,
             )
         }
-        if (openBottomSheet) {
-            ModalBottomSheet(
-                onDismissRequest = { openBottomSheet = false },
-                sheetState = bottomSheetState
-            ) {
-                Column {
-                    Text(selectedAirplane?.airframe?.getOrNull() ?: "Unknown aircraft")
-                }
-            }
+        if (openBottomSheetState.value) {
+            AirplaneInfoBottomSheet(selectedAirplane, openBottomSheetState)
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AirplaneInfoBottomSheet(airplane: Airplane?, openBottomSheetState: MutableState<Boolean>) {
+    var skipPartiallyExpanded by rememberSaveable { mutableStateOf(false) }
+    val bottomSheetState =
+        rememberModalBottomSheetState(skipPartiallyExpanded = skipPartiallyExpanded)
+
+    ModalBottomSheet(
+        onDismissRequest = { openBottomSheetState.value = false },
+        sheetState = bottomSheetState
+    ) {
+        Column {
+            Text(airplane?.airframe?.getOrNull() ?: "Unknown aircraft")
+        }
+    }
+}
+
+
+@Preview
+@Composable
+fun AirplaneInfoBottomSheetPreview() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.padding(all = 16.dp)) {
+            Text("Airframe")
+        }
+    }
+}
+
+
