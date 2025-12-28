@@ -94,9 +94,11 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
                         source = source,
                         onClick = { features ->
                             val airplaneProps = features.first().properties
-                            val hex =
+                            val idOption =
                                 airplaneProps?.getValue("id").toOption().map { it.toString() }
-                            val airplane = airplaneValue.data.find { it.id == hex.getOrNull() }
+                            val id = idOption.map { it.trimEnd('"').trimStart('"') }.getOrNull()
+                            val airplane = airplaneValue.data.find { it.id.contentEquals(id) }
+
                             selectedAirplane = airplane
 
                             openBottomSheet = true
