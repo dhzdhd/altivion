@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -75,46 +77,42 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
             styleState = styleState,
             options = MapOptions(ornamentOptions = OrnamentOptions.OnlyLogo),
         ) {
-            when (airplaneValue) {
-                is Value.Data -> {
-                    val features = airplaneValue.data.map { airplane ->
-                        val point =
-                            Point.fromGeoUri("geo:${airplane.latitude},${airplane.longitude}")
-                        Feature(geometry = point, properties = airplane)
-                    }
-                    val featureCollection = FeatureCollection(features)
-                    val source = rememberGeoJsonSource(
-                        data = GeoJsonData.Features(featureCollection),
-                        options = GeoJsonOptions(minZoom = 0)
-                    )
-
-                    SymbolLayer(
-                        id = "airplanes",
-                        source = source,
-                        onClick = { features ->
-                            val airplaneProps = features.first().properties
-                            val hexOption =
-                                airplaneProps?.getValue("hex").toOption().map { it.toString() }
-                            val hex = hexOption.map { it.trimEnd('"').trimStart('"') }.getOrNull()
-                            val airplane = airplaneValue.data.find { it.hex.contentEquals(hex) }
-
-                            selectedAirplane = airplane
-
-                            openBottomSheetState.value = true
-                            ClickResult.Consume
-                        },
-                        iconImage = image(markerPainter, drawAsSdf = true),
-                        iconColor = const(Color.Blue),
-                        iconSize = const(0.041f),
-                        iconAllowOverlap = const(true),
-                        iconIgnorePlacement = const(true),
-                        iconRotate = get("track").asNumber().plus(const(270.0f)),
-                        iconRotationAlignment = const(IconRotationAlignment.Map)
-                    )
+            if (airplaneValue is Value.Data) {
+                val features = airplaneValue.data.map { airplane ->
+                    val point =
+                        Point.fromGeoUri("geo:${airplane.latitude},${airplane.longitude}")
+                    Feature(geometry = point, properties = airplane)
                 }
+                val featureCollection = FeatureCollection(features)
+                val source = rememberGeoJsonSource(
+                    data = GeoJsonData.Features(featureCollection),
+                    options = GeoJsonOptions(minZoom = 0)
+                )
 
-                else -> {
-                }
+                SymbolLayer(
+                    id = "airplanes",
+                    source = source,
+                    onClick = { features ->
+                        val airplaneProps = features.first().properties
+                        val hexOption =
+                            airplaneProps?.getValue("hex").toOption().map { it.toString() }
+                        val hex =
+                            hexOption.map { it.trimEnd('"').trimStart('"') }.getOrNull()
+                        val airplane = airplaneValue.data.find { it.hex.contentEquals(hex) }
+
+                        selectedAirplane = airplane
+
+                        openBottomSheetState.value = true
+                        ClickResult.Consume
+                    },
+                    iconImage = image(markerPainter, drawAsSdf = true),
+                    iconColor = const(Color.Blue),
+                    iconSize = const(0.041f),
+                    iconAllowOverlap = const(true),
+                    iconIgnorePlacement = const(true),
+                    iconRotate = get("track").asNumber().plus(const(270.0f)),
+                    iconRotationAlignment = const(IconRotationAlignment.Map)
+                )
             }
         }
         Box(modifier = Modifier.fillMaxSize().padding(8.dp)) {
@@ -133,9 +131,15 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
                 contentAlignment = Alignment.BottomEnd,
             )
         }
-        if (openBottomSheetState.value) {
-            AirplaneInfoBottomSheet(selectedAirplane, openBottomSheetState)
+        if (airplaneValue is Value.Loading) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = MaterialTheme.colorScheme.inversePrimary)
+            }
         }
+    }
+
+    if (openBottomSheetState.value) {
+        AirplaneInfoBottomSheet(selectedAirplane, openBottomSheetState)
     }
 }
 

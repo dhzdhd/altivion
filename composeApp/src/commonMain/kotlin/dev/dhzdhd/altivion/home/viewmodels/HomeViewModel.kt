@@ -36,7 +36,6 @@ class HomeViewModel(private val service: HomeService): ViewModel(), Store<HomeAc
     init {
         service.getAirplanes(17.3753, 78.4744, 500.0)
             .onEach { result ->
-                println("Got data in viewmodel")
                 state.value = when(result) {
                     is Either.Left -> Value.Error(result.value)
                     is Either.Right -> Value.Data(result.value)

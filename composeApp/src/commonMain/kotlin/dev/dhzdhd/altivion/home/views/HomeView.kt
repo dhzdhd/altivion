@@ -26,10 +26,5 @@ fun HomeView(viewModel: HomeViewModel, contentPadding: PaddingValues) {
             .padding(contentPadding).fillMaxSize(),
     ) {
         InteractiveMap(airplanes)
-        ElevatedButton(onClick = {
-            viewModel.dispatch(HomeAction.GetAllItems)
-        }) {
-            Text("Click")
-        }
     }
 }
