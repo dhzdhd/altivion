@@ -1,7 +1,6 @@
 package dev.dhzdhd.altivion.home.services
 
 import arrow.core.Either
-import arrow.core.toOption
 import dev.dhzdhd.altivion.common.AppError
 import dev.dhzdhd.altivion.home.models.Airplane
 import dev.dhzdhd.altivion.home.repositories.AirplaneDTO
@@ -28,7 +27,7 @@ class HomeService(private val api: AirplanesLiveRouteAPI) {
                 emit(api.getAirplanesByLatLon(latitude, longitude, radius).map {
                     it.aircraft.map(AirplaneDTO::toAirplane)
                 })
-                delay(10000)
+                delay(2000)
             }
         }
     }

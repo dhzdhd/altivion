@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -29,7 +28,6 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.expressions.dsl.Feature.get
 import org.maplibre.compose.expressions.dsl.asNumber
-import org.maplibre.compose.expressions.dsl.feature
 import org.maplibre.compose.expressions.dsl.const
 import org.maplibre.compose.expressions.dsl.image
 import org.maplibre.compose.expressions.dsl.plus
@@ -159,5 +157,3 @@ fun AirplaneInfoBottomSheetPreview() {
         }
     }
 }
-
-
