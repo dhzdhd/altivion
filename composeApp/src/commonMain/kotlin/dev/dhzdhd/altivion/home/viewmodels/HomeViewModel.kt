@@ -34,7 +34,7 @@ class HomeViewModel(private val service: HomeService): ViewModel(), Store<HomeAc
     val snackBarEvents = _snackBarEvents.asSharedFlow()
 
     init {
-        service.getAirplanes(17.3753, 78.4744, 2000.0)
+        service.getAirplanes(17.3753, 78.4744, 500.0)
             .onEach { result ->
                 println("Got data in viewmodel")
                 state.value = when(result) {
