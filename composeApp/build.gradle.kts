@@ -88,6 +88,10 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.ksoup)
+            implementation(libs.ksoup.network)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor3)
 
 //            implementation(libs.compass.geolocation)
 //            implementation(libs.compass.geolocation.mobile)

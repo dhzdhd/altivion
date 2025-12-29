@@ -17,9 +17,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
 
-data class HomeState(val currentLocation: Int) {
-}
-
 sealed interface HomeAction: Action {
     data object GetAllItems: HomeAction
     data class ShowSnackBar(val message: String): HomeAction
