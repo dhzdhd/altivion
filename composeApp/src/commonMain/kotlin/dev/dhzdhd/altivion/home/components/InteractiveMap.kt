@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import arrow.core.toOption
 import dev.dhzdhd.altivion.common.Value
 import dev.dhzdhd.altivion.home.models.Airplane
+import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.maplibre.compose.camera.rememberCameraState
@@ -31,6 +33,7 @@ import org.maplibre.compose.expressions.dsl.asNumber
 import org.maplibre.compose.expressions.dsl.const
 import org.maplibre.compose.expressions.dsl.image
 import org.maplibre.compose.expressions.dsl.plus
+import org.maplibre.compose.expressions.value.IconRotationAlignment
 import org.maplibre.compose.layers.SymbolLayer
 import org.maplibre.compose.map.MapOptions
 import org.maplibre.compose.map.MaplibreMap
@@ -48,6 +51,11 @@ import org.maplibre.spatialk.geojson.Feature
 import org.maplibre.spatialk.geojson.FeatureCollection
 import org.maplibre.spatialk.geojson.Point
 
+private val AirplaneStateSaver = Saver<Airplane?, String>(
+    save = { Json.encodeToString(it) },
+    restore = { Json.decodeFromString<Airplane?>(it) }
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
@@ -55,8 +63,8 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
     val styleState = rememberStyleState()
     val baseStyle = BaseStyle.Uri("https://tiles.openfreemap.org/styles/liberty")
 
-    var openBottomSheetState = rememberSaveable { mutableStateOf(false) }
-    var selectedAirplane by rememberSaveable { mutableStateOf<Airplane?>(null) }
+    val openBottomSheetState = rememberSaveable { mutableStateOf(false) }
+    var selectedAirplane by rememberSaveable(stateSaver = AirplaneStateSaver) { mutableStateOf(null) }
 
     val markerPainter = painterResource(Res.drawable.plane)
 
@@ -100,7 +108,8 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
                         iconSize = const(0.041f),
                         iconAllowOverlap = const(true),
                         iconIgnorePlacement = const(true),
-                        iconRotate = get("track").asNumber().plus(const(270.0f))
+                        iconRotate = get("track").asNumber().plus(const(270.0f)),
+                        iconRotationAlignment = const(IconRotationAlignment.Map)
                     )
                 }
 

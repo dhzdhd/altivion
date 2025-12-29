@@ -74,7 +74,10 @@ fun App() {
     val navController = rememberNavController()
     val snackBarHostState = remember { SnackbarHostState() }
 
+    val homeViewModel = koinViewModel<HomeViewModel>()
+    val searchViewModel = koinViewModel<SearchViewModel>()
     val settingsViewModel = koinViewModel<SettingsViewModel>()
+
     val settings by settingsViewModel.settings.collectAsState()
 
     MaterialTheme(
@@ -136,24 +139,22 @@ fun App() {
         ) { contentPadding ->
             NavHost(navController = navController, startDestination = TabPage.Home) {
                 composable<TabPage.Home> {
-                    val viewModel = koinViewModel<HomeViewModel>()
                     LaunchedEffect(Unit) {
-                        viewModel.snackBarEvents.collectLatest {
+                        homeViewModel.snackBarEvents.collectLatest {
                             snackBarHostState.showSnackbar(it)
                         }
                     }
 
-                    HomeView(viewModel = viewModel, contentPadding = contentPadding)
+                    HomeView(viewModel = homeViewModel, contentPadding = contentPadding)
                 }
                 composable<TabPage.Search> {
-                    val viewModel = koinViewModel<SearchViewModel>()
                     LaunchedEffect(Unit) {
-                        viewModel.snackBarEvents.collectLatest {
+                        searchViewModel.snackBarEvents.collectLatest {
                             snackBarHostState.showSnackbar(it)
                         }
                     }
 
-                    SearchView(viewModel = viewModel, contentPadding = contentPadding)
+                    SearchView(viewModel = searchViewModel, contentPadding = contentPadding)
                 }
                 composable<TabPage.Settings> {
                     LaunchedEffect(Unit) {
