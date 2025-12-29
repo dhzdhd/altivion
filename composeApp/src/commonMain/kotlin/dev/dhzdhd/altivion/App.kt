@@ -10,7 +10,6 @@ import androidx.compose.runtime.*
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -18,6 +17,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.navigation.compose.NavHost
@@ -28,6 +29,7 @@ import dev.dhzdhd.altivion.home.views.HomeView
 import dev.dhzdhd.altivion.search.viewmodels.SearchViewModel
 import dev.dhzdhd.altivion.search.views.SearchView
 import dev.dhzdhd.altivion.settings.viewmodels.SettingsViewModel
+import dev.dhzdhd.altivion.settings.viewmodels.ThemeMode
 import dev.dhzdhd.altivion.settings.views.SettingsView
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.serialization.Serializable
@@ -72,7 +74,15 @@ fun App() {
     val navController = rememberNavController()
     val snackBarHostState = remember { SnackbarHostState() }
 
-    MaterialTheme {
+    val settingsViewModel = koinViewModel<SettingsViewModel>()
+    val settings by settingsViewModel.settings.collectAsState()
+
+    MaterialTheme(
+        colorScheme = when (settings.themeMode) {
+            ThemeMode.LIGHT -> lightColorScheme()
+            ThemeMode.DARK -> darkColorScheme()
+        }
+    ) {
         Scaffold(
             snackbarHost = { SnackbarHost(snackBarHostState) },
             topBar = {
@@ -146,14 +156,13 @@ fun App() {
                     SearchView(viewModel = viewModel, contentPadding = contentPadding)
                 }
                 composable<TabPage.Settings> {
-                    val viewModel = koinViewModel<SettingsViewModel>()
                     LaunchedEffect(Unit) {
-                        viewModel.snackBarEvents.collectLatest {
+                        settingsViewModel.snackBarEvents.collectLatest {
                             snackBarHostState.showSnackbar(it)
                         }
                     }
 
-                    SettingsView(viewModel = viewModel, contentPadding = contentPadding)
+                    SettingsView(viewModel = settingsViewModel, contentPadding = contentPadding)
                 }
             }
         }
