@@ -2,16 +2,31 @@ package dev.dhzdhd.altivion.home.components
 
 import altivion.composeapp.generated.resources.Res
 import altivion.composeapp.generated.resources.plane
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Label
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -25,11 +40,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.toOption
 import coil3.compose.AsyncImage
 import dev.dhzdhd.altivion.common.AppError
@@ -108,7 +129,8 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
                         val airplaneProps = features.first().properties
 //                        selectedAirplane = Json.decodeFromString<Airplane?>(airplaneProps.toString())
                         val hexOption =
-                            airplaneProps?.getValue("hex").toOption().map { it.toString().trimStart('"').trimEnd('"') }
+                            airplaneProps?.getValue("hex").toOption()
+                                .map { it.toString().trimStart('"').trimEnd('"') }
                         val hex =
                             hexOption.getOrNull()
                         val airplane = airplaneValue.data.find { it.hex.contentEquals(hex) }
@@ -186,29 +208,88 @@ fun AirplaneInfoBottomSheet(
         onDismissRequest = { openBottomSheetState.value = false },
         sheetState = bottomSheetState
     ) {
-        Column {
-            Text(airplane?.airframe?.getOrNull() ?: "Unknown aircraft")
-            when (airplaneImage) {
-                is Value.Data ->
-                    AsyncImage(
-                        (airplaneImage as Value.Data<AirplaneImage>).data.image,
-                        contentDescription = "",
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                else -> CircularProgressIndicator()
+        Column(
+            modifier = Modifier.padding(all = 16.dp).scrollable(
+                state = rememberScrollState(),
+                orientation = Orientation.Vertical,
+            ),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            if (airplane != null) {
+                HeaderSection(airplane)
+                ImageSection(airplane, airplaneImage)
+                RouteSection(airplane)
+            } else {
+                Text("Error in retrieving aircraft details")
             }
         }
     }
 }
 
-
-@Preview
 @Composable
-fun AirplaneInfoBottomSheetPreview() {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.padding(all = 16.dp)) {
-            Text("Airframe")
+fun RouteSection(airplane: Airplane) {
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HeaderSection(airplane: Airplane) {
+    LazyVerticalGrid(columns = GridCells.Fixed(count = 2)) {
+        item {
+            Text(
+                airplane.flight.getOrElse { "?" },
+                fontSize = 9.em,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+        item {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = MaterialTheme.colorScheme.primary
+                ) {
+                    Text(
+                        "In progress",
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+            }
+        }
+        item(span = { GridItemSpan(2) }) {
+            Column {
+                Text(airplane.description.getOrElse { "Unknown aircraft" })
+                Text(airplane.registration.getOrElse { "Unknown registration" })
+            }
+        }
+    }
+}
+
+@Composable
+private fun ImageSection(airplane: Airplane, airplaneImage: Value<AirplaneImage>) {
+    Box(
+        modifier = Modifier.fillMaxWidth().height(250.dp).border(
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.inversePrimary),
+            shape = RoundedCornerShape(20.dp)
+        )
+    ) {
+        when (airplaneImage) {
+            is Value.Data -> {
+                AsyncImage(
+                    airplaneImage.data.image,
+                    contentDescription = airplaneImage.data.link,
+                    modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(20.dp)),
+                    contentScale = ContentScale.FillBounds,
+                )
+            }
+
+            is Value.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            is Value.Error -> Text(
+                airplaneImage.error.message,
+                modifier = Modifier.align(Alignment.Center)
+            )
         }
     }
 }
