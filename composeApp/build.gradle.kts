@@ -92,6 +92,7 @@ kotlin {
             implementation(libs.ksoup.network)
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
+            implementation(libs.calf.permissions)
 
 //            implementation(libs.compass.geolocation)
 //            implementation(libs.compass.geolocation.mobile)

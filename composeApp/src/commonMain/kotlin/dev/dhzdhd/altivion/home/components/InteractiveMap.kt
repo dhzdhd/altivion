@@ -23,6 +23,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Label
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -35,6 +36,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -53,15 +55,18 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.toOption
 import coil3.compose.AsyncImage
+import com.fleeksoft.ksoup.nodes.Range
 import dev.dhzdhd.altivion.common.AppError
 import dev.dhzdhd.altivion.common.Value
 import dev.dhzdhd.altivion.home.models.Airplane
 import dev.dhzdhd.altivion.home.repositories.AirplaneImage
 import dev.dhzdhd.altivion.home.services.HomeService
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
+import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.expressions.dsl.Feature.get
 import org.maplibre.compose.expressions.dsl.asNumber
@@ -85,6 +90,8 @@ import org.maplibre.compose.util.ClickResult
 import org.maplibre.spatialk.geojson.Feature
 import org.maplibre.spatialk.geojson.FeatureCollection
 import org.maplibre.spatialk.geojson.Point
+import org.maplibre.compose.location.rememberDefaultLocationProvider
+import org.maplibre.spatialk.geojson.Position
 
 private val AirplaneStateSaver = Saver<Airplane?, String>(
     save = { Json.encodeToString(it) },
@@ -102,6 +109,9 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
     var selectedAirplane by rememberSaveable(stateSaver = AirplaneStateSaver) { mutableStateOf(null) }
 
     val markerPainter = painterResource(Res.drawable.plane)
+
+    val locationProvider = rememberDefaultLocationProvider()
+    val coroutineScope = rememberCoroutineScope()
 
     Box(modifier = Modifier.fillMaxSize()) {
         MaplibreMap(
@@ -165,6 +175,21 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
                 modifier = Modifier.align(Alignment.BottomEnd),
                 contentAlignment = Alignment.BottomEnd,
             )
+            FloatingActionButton(onClick = {
+                coroutineScope.launch {
+                    val location = locationProvider.location.value
+                    cameraState.animateTo(
+                        CameraPosition(
+                            target = Position(
+                                longitude = location?.position?.longitude!!,
+                                latitude = location.position.latitude
+                            )
+                        )
+                    )
+                }
+            }) {
+                Text("Location")
+            }
         }
         if (airplaneValue is Value.Loading) {
             Box(modifier = Modifier.fillMaxSize()) {
