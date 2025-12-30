@@ -4,12 +4,16 @@ import altivion.composeapp.generated.resources.Res
 import altivion.composeapp.generated.resources.plane
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,9 +25,13 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Label
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -44,18 +52,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.toOption
 import coil3.compose.AsyncImage
 import com.fleeksoft.ksoup.nodes.Range
+import com.mohamedrejeb.calf.permissions.ExperimentalPermissionsApi
+import com.mohamedrejeb.calf.permissions.Permission
+import com.mohamedrejeb.calf.permissions.isGranted
+import com.mohamedrejeb.calf.permissions.isNotGranted
+import com.mohamedrejeb.calf.permissions.rememberPermissionState
 import dev.dhzdhd.altivion.common.AppError
 import dev.dhzdhd.altivion.common.Value
 import dev.dhzdhd.altivion.home.models.Airplane
@@ -75,6 +93,7 @@ import org.maplibre.compose.expressions.dsl.image
 import org.maplibre.compose.expressions.dsl.plus
 import org.maplibre.compose.expressions.value.IconRotationAlignment
 import org.maplibre.compose.layers.SymbolLayer
+import org.maplibre.compose.location.DesiredAccuracy
 import org.maplibre.compose.map.MapOptions
 import org.maplibre.compose.map.MaplibreMap
 import org.maplibre.compose.map.OrnamentOptions
@@ -95,10 +114,9 @@ import org.maplibre.spatialk.geojson.Position
 
 private val AirplaneStateSaver = Saver<Airplane?, String>(
     save = { Json.encodeToString(it) },
-    restore = { Json.decodeFromString<Airplane?>(it) }
-)
+    restore = { Json.decodeFromString<Airplane?>(it) })
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
     val cameraState = rememberCameraState()
@@ -110,7 +128,7 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
 
     val markerPainter = painterResource(Res.drawable.plane)
 
-    val locationProvider = rememberDefaultLocationProvider()
+    val permissionState = rememberPermissionState(Permission.FineLocation)
     val coroutineScope = rememberCoroutineScope()
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -122,8 +140,7 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
         ) {
             if (airplaneValue is Value.Data) {
                 val features = airplaneValue.data.map { airplane ->
-                    val point =
-                        Point.fromGeoUri("geo:${airplane.latitude},${airplane.longitude}")
+                    val point = Point.fromGeoUri("geo:${airplane.latitude},${airplane.longitude}")
                     Feature(geometry = point, properties = airplane)
                 }
                 val featureCollection = FeatureCollection(features)
@@ -138,11 +155,9 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
                     onClick = { features ->
                         val airplaneProps = features.first().properties
 //                        selectedAirplane = Json.decodeFromString<Airplane?>(airplaneProps.toString())
-                        val hexOption =
-                            airplaneProps?.getValue("hex").toOption()
-                                .map { it.toString().trimStart('"').trimEnd('"') }
-                        val hex =
-                            hexOption.getOrNull()
+                        val hexOption = airplaneProps?.getValue("hex").toOption()
+                            .map { it.toString().trimStart('"').trimEnd('"') }
+                        val hex = hexOption.getOrNull()
                         val airplane = airplaneValue.data.find { it.hex.contentEquals(hex) }
 
                         selectedAirplane = airplane
@@ -177,15 +192,23 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
             )
             FloatingActionButton(onClick = {
                 coroutineScope.launch {
-                    val location = locationProvider.location.value
-                    cameraState.animateTo(
-                        CameraPosition(
-                            target = Position(
-                                longitude = location?.position?.longitude!!,
-                                latitude = location.position.latitude
-                            )
-                        )
-                    )
+//                    if (permissionState.status.isNotGranted) {
+//                        permissionState.launchPermissionRequest()
+//                    }
+//
+//                    if (permissionState.status.isGranted) {
+//                        println(locationProvider.location)
+//                        val location = locationProvider.location.value
+//                        println(location)
+//                        cameraState.animateTo(
+//                            CameraPosition(
+//                                target = Position(
+//                                    longitude = location?.position?.longitude!!,
+//                                    latitude = location.position.latitude
+//                                )
+//                            )
+//                        )
+//                    }
                 }
             }) {
                 Text("Location")
@@ -230,30 +253,326 @@ fun AirplaneInfoBottomSheet(
     }
 
     ModalBottomSheet(
-        onDismissRequest = { openBottomSheetState.value = false },
-        sheetState = bottomSheetState
+        onDismissRequest = { openBottomSheetState.value = false }, sheetState = bottomSheetState
     ) {
         Column(
             modifier = Modifier.padding(all = 16.dp).scrollable(
                 state = rememberScrollState(),
                 orientation = Orientation.Vertical,
-            ),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            ), verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             if (airplane != null) {
                 HeaderSection(airplane)
                 ImageSection(airplane, airplaneImage)
-                RouteSection(airplane)
+                RouteSection()
+                TimeSection()
+                FlightMetricsSection(airplane)
             } else {
                 Text("Error in retrieving aircraft details")
+            }
+        }
+        Row(modifier = Modifier.align(Alignment.CenterHorizontally)) {
+            ElevatedButton(
+                colors = ButtonDefaults.elevatedButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.inversePrimary
+                ),
+                onClick = {}) {
+                Text("History")
+            }
+            ElevatedButton(onClick = {}) {
+                Text("Track")
             }
         }
     }
 }
 
 @Composable
-fun RouteSection(airplane: Airplane) {
+fun FlightInfoCard(airplane: Airplane) {
+    var isExpanded by remember { mutableStateOf(true) }
 
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = Color(0xFF2B2930),
+        shadowElevation = 2.dp,
+        border = BorderStroke(1.dp, Color(0x0DFFFFFF))
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            // Section Header
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { isExpanded = !isExpanded }
+                    .padding(bottom = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "title",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.SemiBold
+                    ),
+                    color = Color(0xFFE6E1E5),
+                    fontSize = 16.sp
+                )
+
+                Text(
+                    text = if (isExpanded) "⌄" else "›",
+                    color = Color(0xFFCAC4D0),
+                    fontSize = 20.sp
+                )
+            }
+
+            FlightInfoItemRow(
+                title = "",
+                subtitle = "",
+                value = ""
+            )
+        }
+    }
+}
+
+@Composable
+private fun FlightInfoItemRow(
+    title: String,
+    subtitle: String,
+    value: String,
+    showDivider: Boolean = true
+) {
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
+                    color = Color(0xFFE6E1E5),
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFFCAC4D0),
+                    fontSize = 12.sp
+                )
+            }
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.SemiBold
+                ),
+                color = Color(0xFFE6E1E5),
+                fontSize = 16.sp
+            )
+        }
+        if (showDivider) {
+            HorizontalDivider(
+                color = Color(0x14FFFFFF),
+                thickness = 1.dp
+            )
+        }
+    }
+}
+
+@Composable
+fun FlightMetricsSection(airplane: Airplane) {
+    Row(
+        modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        MetricCard(
+            modifier = Modifier.weight(1f),
+            icon = "🏔️",
+            value = airplane.barometricAltitude.getOrElse { "?" },
+            label = "Altitude (ft)"
+        )
+        MetricCard(
+            modifier = Modifier.weight(1f),
+            icon = "⚡",
+            value = airplane.indicatedAirSpeed.map { it.toString() }.getOrElse { "?" },
+            label = "Speed (kts)"
+        )
+        MetricCard(
+            modifier = Modifier.weight(1f),
+            icon = "🧭",
+            value = airplane.track.map { it.toString() }.getOrElse { "?" },
+            label = "Track"
+        )
+    }
+}
+
+@Composable
+private fun MetricCard(
+    modifier: Modifier = Modifier, icon: String, value: String, label: String
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFF2B2930),
+        shadowElevation = 1.dp,
+        border = BorderStroke(1.dp, Color(0x0DFFFFFF))
+    ) {
+        Column(
+            modifier = Modifier.padding(vertical = 16.dp, horizontal = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = icon, fontSize = 24.sp, modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Bold
+                ),
+                color = Color(0xFFE6E1E5),
+                fontSize = 20.sp,
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+            Text(
+                text = label, style = MaterialTheme.typography.labelSmall.copy(
+                    letterSpacing = 0.3.sp
+                ), color = Color(0xFFCAC4D0), fontSize = 11.sp, textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+fun TimeSection() {
+    Row(
+        modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        TimeCard(
+            modifier = Modifier.weight(1f), label = "DEPARTED", time = "1:06 PM", status = "Actual"
+        )
+        TimeCard(
+            modifier = Modifier.weight(1f),
+            label = "ESTIMATED ARRIVAL",
+            time = "1:12 AM",
+            status = "Delayed"
+        )
+    }
+}
+
+@Composable
+private fun TimeCard(
+    modifier: Modifier = Modifier, label: String, time: String, status: String
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        color = Color(0x14FFFFFF),
+        border = BorderStroke(1.dp, Color(0x1AFFFFFF))
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp)
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    letterSpacing = 0.5.sp
+                ),
+                color = Color(0xFFCCC2DC),
+                fontSize = 11.sp,
+                modifier = Modifier.padding(bottom = 6.dp)
+            )
+
+            Text(
+                text = time, style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.SemiBold
+                ), color = Color.White, fontSize = 20.sp
+            )
+
+            Text(
+                text = status,
+                style = MaterialTheme.typography.labelSmall,
+                color = Color(0xFFA0A0A0),
+                fontSize = 11.sp,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+        }
+    }
+}
+
+
+@Composable
+fun RouteSection() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(
+            modifier = Modifier.weight(1f), horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                text = "AMS", style = MaterialTheme.typography.displaySmall.copy(
+                    fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp
+                ), color = Color.White
+            )
+            Text(
+                text = "Amsterdam",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFFCCC2DC)
+            )
+        }
+        Column(
+            modifier = Modifier.weight(1f).padding(horizontal = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "✈",
+                fontSize = 24.sp,
+            )
+
+            Box(
+                modifier = Modifier.fillMaxWidth().height(2.dp).background(
+                    brush = Brush.horizontalGradient(
+                        0f to Color(0xFF6750A4),
+                        50f to Color(0xFF6750A4),
+                        50f to Color(0x33FFFFFF),
+                        1f to Color(0x33FFFFFF)
+                    )
+                )
+            )
+            Text(
+                text = "07h 34m",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color(0xFFCCC2DC),
+                fontSize = 11.sp
+            )
+        }
+        Column(
+            modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End
+        ) {
+            Text(
+                text = "DEL", style = MaterialTheme.typography.displaySmall.copy(
+                    fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp
+                ), color = Color.White
+            )
+            Text(
+                text = "Delhi",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFFCCC2DC)
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -264,17 +583,16 @@ private fun HeaderSection(airplane: Airplane) {
             Text(
                 airplane.flight.getOrElse { "?" },
                 fontSize = 9.em,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
         }
         item {
             Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.CenterEnd
+                modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd
             ) {
                 Surface(
-                    shape = RoundedCornerShape(50),
-                    color = MaterialTheme.colorScheme.primary
+                    shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.primary
                 ) {
                     Text(
                         "In progress",
@@ -312,8 +630,7 @@ private fun ImageSection(airplane: Airplane, airplaneImage: Value<AirplaneImage>
 
             is Value.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             is Value.Error -> Text(
-                airplaneImage.error.message,
-                modifier = Modifier.align(Alignment.Center)
+                airplaneImage.error.message, modifier = Modifier.align(Alignment.Center)
             )
         }
     }
