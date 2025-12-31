@@ -19,11 +19,9 @@ actual fun getLocation(): Either<AppError, Location> {
     val osName = System.getProperty("os.name").lowercase(Locale.getDefault())
     return when {
         osName.contains("win") -> {
-            // val proc = Runtime.getRuntime().exec("powershell.exe -Command \"Get-Geolocation\"")
             getLocationFromIp()
         }
         osName.contains("nix") || osName.contains("nux") || osName.contains("aix") -> {
-            // This might involve using a command-line tool like geoclue or gpsd.
             getLocationFromIp()
         }
         osName.contains("mac") -> {
@@ -51,7 +49,7 @@ private fun getLocationFromIp(): Either<AppError, Location> = runBlocking {
         client.close()
         AppError.NetworkError(
             message = it.message ?: "",
-            method = "GET"
+            error = it
         )
     }
 }
