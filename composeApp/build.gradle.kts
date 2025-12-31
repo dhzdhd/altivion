@@ -44,7 +44,15 @@ kotlin {
     jvm()
     
     js {
-        browser()
+        browser {
+            commonWebpackConfig {
+                cssSupport {
+                    enabled.set(true)
+                }
+
+                configDirectory = file("webpack.config.d")
+            }
+        }
         binaries.executable()
     }
     
