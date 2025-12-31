@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -68,6 +69,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.expressions.dsl.Feature.get
+import org.maplibre.compose.expressions.dsl.all
 import org.maplibre.compose.expressions.dsl.asNumber
 import org.maplibre.compose.expressions.dsl.const
 import org.maplibre.compose.expressions.dsl.image
@@ -226,7 +228,6 @@ fun AirplaneInfoBottomSheet(
                 is Either.Right -> Value.Data(req.value)
                 is Either.Left -> Value.Error(req.value)
             }
-            println(req)
         }
     }
 
@@ -235,10 +236,10 @@ fun AirplaneInfoBottomSheet(
         sheetState = bottomSheetState,
     ) {
         Column(
-            modifier = Modifier.padding(all = 16.dp).scrollable(
+            modifier = Modifier.padding(all = 16.dp).verticalScroll(
                 state = rememberScrollState(),
-                orientation = Orientation.Vertical,
-            ), verticalArrangement = Arrangement.spacedBy(16.dp)
+            ),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             if (airplane != null) {
                 HeaderSection(airplane)
@@ -246,6 +247,7 @@ fun AirplaneInfoBottomSheet(
                 RouteSection()
                 TimeSection()
                 FlightMetricsSection(airplane)
+                FlightInfoSection(airplane)
             } else {
                 Text("Error in retrieving aircraft details")
             }
@@ -254,13 +256,81 @@ fun AirplaneInfoBottomSheet(
 }
 
 @Composable
-fun FlightInfoCard(airplane: Airplane) {
+fun FlightInfoSection(airplane: Airplane) {
+    FlightInfoCard(
+        "Aircraft Details", listOf(
+            FlightInfoCardDetails("Type", "", airplane.type.getOrElse { "N/A" }),
+            FlightInfoCardDetails("Airframe", "", airplane.airframe.getOrElse { "N/A" }),
+            FlightInfoCardDetails("Category", "", airplane.category.getOrElse { "N/A" }),
+            FlightInfoCardDetails(
+                "ADS-B Version",
+                "",
+                airplane.adsbVersion.map { it.toString() }.getOrElse { "N/A" }),
+        )
+    )
+    FlightInfoCard(
+        "Flight Performance", listOf(
+            FlightInfoCardDetails(
+                "True Airspeed",
+                "kts",
+                airplane.trueAirSpeed.map { it.toString() }.getOrElse { "N/A" }),
+            FlightInfoCardDetails(
+                "Ground Speed",
+                "kts",
+                airplane.groundSpeed.map { it.toString() }.getOrElse { "N/A" }),
+            FlightInfoCardDetails(
+                "Mach",
+                "",
+                airplane.mach.map { it.toString() }.getOrElse { "N/A" }),
+            FlightInfoCardDetails(
+                "Wind Direction",
+                "°",
+                airplane.windDirection.map { it.toString() }.getOrElse { "N/A" }),
+            FlightInfoCardDetails(
+                "Wind Speed",
+                "kts",
+                airplane.windSpeed.map { it.toString() }.getOrElse { "N/A" }),
+            FlightInfoCardDetails(
+                "Outside Air Temp",
+                "°C",
+                airplane.outsideAirTemperature.map { it.toString() }.getOrElse { "N/A" }),
+            FlightInfoCardDetails(
+                "Total Air Temp",
+                "°C",
+                airplane.totalAirTemperature.map { it.toString() }.getOrElse { "N/A" }),
+            FlightInfoCardDetails(
+                "Geometric Alt",
+                "ft",
+                airplane.geometricAltitude.map { it.toString() }.getOrElse { "N/A" }),
+            FlightInfoCardDetails(
+                "Magnetic Heading",
+                "°",
+                airplane.magneticHeading.map { it.toString() }.getOrElse { "N/A" }),
+            FlightInfoCardDetails(
+                "True Heading",
+                "°",
+                airplane.trueHeading.map { it.toString() }.getOrElse { "N/A" }),
+            FlightInfoCardDetails("Squawk", "", airplane.squawk.getOrElse { "N/A" }),
+            FlightInfoCardDetails(
+                "Time Since Last Msg",
+                "s",
+                airplane.timeSinceLastMessage.map { it.toString() }.getOrElse { "N/A" }),
+            FlightInfoCardDetails(
+                "Signal Strength",
+                "dBm",
+                airplane.signalStrength.map { it.toString() }.getOrElse { "N/A" }),
+        )
+    )
+}
+
+data class FlightInfoCardDetails(val title: String, val subtitle: String, val value: String)
+
+@Composable
+fun FlightInfoCard(title: String, details: List<FlightInfoCardDetails>) {
     var isExpanded by remember { mutableStateOf(true) }
 
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         shape = RoundedCornerShape(20.dp),
         color = Color(0xFF2B2930),
         shadowElevation = 2.dp,
@@ -269,52 +339,40 @@ fun FlightInfoCard(airplane: Airplane) {
         Column(
             modifier = Modifier.padding(20.dp)
         ) {
-            // Section Header
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { isExpanded = !isExpanded }
-                    .padding(bottom = 16.dp),
+            Row(modifier = Modifier.fillMaxWidth().clickable { isExpanded = !isExpanded }
+                .padding(bottom = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+                verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "title",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.SemiBold
-                    ),
-                    color = Color(0xFFE6E1E5),
-                    fontSize = 16.sp
+                    text = title, style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    ), color = Color(0xFFE6E1E5), fontSize = 16.sp
                 )
 
                 Text(
-                    text = if (isExpanded) "⌄" else "›",
-                    color = Color(0xFFCAC4D0),
-                    fontSize = 20.sp
+                    text = if (isExpanded) "⌄" else "›", color = Color(0xFFCAC4D0), fontSize = 20.sp
                 )
             }
 
-            FlightInfoItemRow(
-                title = "",
-                subtitle = "",
-                value = ""
-            )
+            details.mapIndexed { index, detail ->
+                FlightInfoItemRow(
+                    title = detail.title,
+                    subtitle = detail.subtitle,
+                    value = detail.value,
+                    showDivider = index != details.lastIndex
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun FlightInfoItemRow(
-    title: String,
-    subtitle: String,
-    value: String,
-    showDivider: Boolean = true
+    title: String, subtitle: String, value: String, showDivider: Boolean = true
 ) {
     Column {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -339,18 +397,14 @@ private fun FlightInfoItemRow(
                 )
             }
             Text(
-                text = value,
-                style = MaterialTheme.typography.titleMedium.copy(
+                text = value, style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.SemiBold
-                ),
-                color = Color(0xFFE6E1E5),
-                fontSize = 16.sp
+                ), color = Color(0xFFE6E1E5), fontSize = 16.sp
             )
         }
         if (showDivider) {
             HorizontalDivider(
-                color = Color(0x14FFFFFF),
-                thickness = 1.dp
+                color = Color(0x14FFFFFF), thickness = 1.dp
             )
         }
     }
@@ -541,21 +595,22 @@ fun RouteSection() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HeaderSection(airplane: Airplane) {
-    LazyVerticalGrid(columns = GridCells.Fixed(count = 2)) {
-        item {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
                 airplane.flight.getOrElse { "?" },
                 fontSize = 9.em,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.weight(1f)
             )
-        }
-        item {
             Box(
-                modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd
+                contentAlignment = Alignment.CenterEnd
             ) {
                 Surface(
                     shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.primary
@@ -567,11 +622,9 @@ private fun HeaderSection(airplane: Airplane) {
                 }
             }
         }
-        item(span = { GridItemSpan(2) }) {
-            Column {
-                Text(airplane.description.getOrElse { "Unknown aircraft" })
-                Text(airplane.registration.getOrElse { "Unknown registration" })
-            }
+        Column {
+            Text(airplane.description.getOrElse { "Unknown aircraft" })
+            Text(airplane.registration.getOrElse { "Unknown registration" })
         }
     }
 }
