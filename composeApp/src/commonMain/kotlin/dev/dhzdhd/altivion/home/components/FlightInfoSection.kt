@@ -1,5 +1,7 @@
 package dev.dhzdhd.altivion.home.components
 
+import altivion.composeapp.generated.resources.Res
+import altivion.composeapp.generated.resources.arrow_right
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -7,8 +9,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -19,12 +23,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import arrow.core.getOrElse
 import dev.dhzdhd.altivion.home.models.Airplane
+import org.jetbrains.compose.resources.painterResource
 
 data class FlightInfoCardDetails(val title: String, val subtitle: String?, val value: String)
 
@@ -101,7 +107,7 @@ fun FlightInfoCard(title: String, details: List<FlightInfoCardDetails>) {
     var isExpanded by remember { mutableStateOf(true) }
 
     Surface(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         color = Color(0xFF2B2930),
         shadowElevation = 2.dp,
@@ -110,28 +116,34 @@ fun FlightInfoCard(title: String, details: List<FlightInfoCardDetails>) {
         Column(
             modifier = Modifier.padding(20.dp)
         ) {
-            Row(modifier = Modifier.fillMaxWidth().clickable { isExpanded = !isExpanded }
-                .padding(bottom = 16.dp),
+            Row(
+                modifier = Modifier.fillMaxWidth().clickable { isExpanded = !isExpanded }
+                    .padding(bottom = if (isExpanded) 8.dp else 0.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically) {
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     text = title, style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold
                     ), color = Color(0xFFE6E1E5), fontSize = 16.sp
                 )
 
-                Text(
-                    text = if (isExpanded) "⌄" else "›", color = Color(0xFFCAC4D0), fontSize = 20.sp
+                Icon(
+                    painter = painterResource(Res.drawable.arrow_right),
+                    contentDescription = "",
+                    modifier = Modifier.size(20.dp).rotate(if (isExpanded) 90f else 0f)
                 )
             }
 
-            details.mapIndexed { index, detail ->
-                FlightInfoItemRow(
-                    title = detail.title,
-                    subtitle = detail.subtitle,
-                    value = detail.value,
-                    showDivider = index != details.lastIndex
-                )
+            if (isExpanded) {
+                details.mapIndexed { index, detail ->
+                    FlightInfoItemRow(
+                        title = detail.title,
+                        subtitle = detail.subtitle,
+                        value = detail.value,
+                        showDivider = index != details.lastIndex
+                    )
+                }
             }
         }
     }

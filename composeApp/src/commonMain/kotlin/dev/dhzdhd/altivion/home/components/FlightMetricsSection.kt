@@ -1,12 +1,18 @@
 package dev.dhzdhd.altivion.home.components
 
+import altivion.composeapp.generated.resources.Res
+import altivion.composeapp.generated.resources.altitude
+import altivion.composeapp.generated.resources.direction
+import altivion.composeapp.generated.resources.speed
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -20,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import arrow.core.getOrElse
 import dev.dhzdhd.altivion.home.models.Airplane
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun FlightMetricsSection(airplane: Airplane) {
@@ -28,19 +36,19 @@ fun FlightMetricsSection(airplane: Airplane) {
     ) {
         MetricCard(
             modifier = Modifier.weight(1f),
-            icon = "🏔️",
+            icon = Res.drawable.altitude,
             value = airplane.barometricAltitude.getOrElse { "?" },
             label = "Altitude (ft)"
         )
         MetricCard(
             modifier = Modifier.weight(1f),
-            icon = "⚡",
+            icon = Res.drawable.speed,
             value = airplane.indicatedAirSpeed.map { it.toString() }.getOrElse { "?" },
             label = "Speed (kts)"
         )
         MetricCard(
             modifier = Modifier.weight(1f),
-            icon = "🧭",
+            icon = Res.drawable.direction,
             value = airplane.track.map { it.toString() }.getOrElse { "?" },
             label = "Track"
         )
@@ -49,7 +57,7 @@ fun FlightMetricsSection(airplane: Airplane) {
 
 @Composable
 private fun MetricCard(
-    modifier: Modifier = Modifier, icon: String, value: String, label: String
+    modifier: Modifier = Modifier, icon: DrawableResource, value: String, label: String
 ) {
     Surface(
         modifier = modifier,
@@ -62,15 +70,17 @@ private fun MetricCard(
             modifier = Modifier.padding(vertical = 16.dp, horizontal = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = icon, fontSize = 24.sp, modifier = Modifier.padding(bottom = 8.dp)
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = label,
+                modifier = Modifier.padding(bottom = 4.dp).size(48.dp)
             )
             Text(
                 text = value,
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold
                 ),
-                color = Color(0xFFE6E1E5),
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 20.sp,
                 modifier = Modifier.padding(bottom = 4.dp)
             )

@@ -2,6 +2,7 @@ package dev.dhzdhd.altivion
 
 import altivion.composeapp.generated.resources.Res
 import altivion.composeapp.generated.resources.home
+import altivion.composeapp.generated.resources.map
 import altivion.composeapp.generated.resources.search
 import altivion.composeapp.generated.resources.settings
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -103,11 +104,11 @@ fun App() {
                         },
                         icon = {
                             Icon(
-                                painter = painterResource(Res.drawable.home),
-                                contentDescription = "Home",
+                                painter = painterResource(Res.drawable.map),
+                                contentDescription = "Map",
                             )
                         },
-                        label = { Text("Home") })
+                        label = { Text("Map") })
                     NavigationBarItem(
                         selected = selectedPage is TabPage.Search,
                         onClick = {

@@ -91,6 +91,7 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
             baseStyle = baseStyle,
             cameraState = cameraState,
             styleState = styleState,
+            zoomRange = 2f..15f,
             options = MapOptions(ornamentOptions = OrnamentOptions.OnlyLogo),
         ) {
             if (airplaneValue is Value.Data) {
