@@ -51,9 +51,14 @@ import org.koin.compose.koinInject
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.expressions.dsl.Feature.get
 import org.maplibre.compose.expressions.dsl.asNumber
+import org.maplibre.compose.expressions.dsl.asString
+import org.maplibre.compose.expressions.dsl.condition
 import org.maplibre.compose.expressions.dsl.const
+import org.maplibre.compose.expressions.dsl.eq
+import org.maplibre.compose.expressions.dsl.feature
 import org.maplibre.compose.expressions.dsl.image
 import org.maplibre.compose.expressions.dsl.plus
+import org.maplibre.compose.expressions.dsl.switch
 import org.maplibre.compose.expressions.value.IconRotationAlignment
 import org.maplibre.compose.layers.SymbolLayer
 import org.maplibre.compose.map.MapOptions
@@ -113,6 +118,32 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>, service: HomeService = 
             zoomRange = 2f..15f,
             options = MapOptions(ornamentOptions = OrnamentOptions.OnlyLogo),
         ) {
+            if (selectedAirlineAndRoute is Value.Data) {
+                val route = (selectedAirlineAndRoute as Value.Data<RouteAndAirline>).data.route
+                val originPoint =
+                    Point.fromGeoUri("geo:${route.origin.latitude},${route.origin.longitude}")
+                val origin = Feature(geometry = originPoint, properties = route.origin)
+
+                val destinationPoint =
+                    Point.fromGeoUri("geo:${route.destination.latitude},${route.destination.longitude}")
+                val destination =
+                    Feature(geometry = destinationPoint, properties = route.destination)
+
+                val featureCollection = FeatureCollection(listOf(origin, destination))
+                val source = rememberGeoJsonSource(
+                    data = GeoJsonData.Features(featureCollection),
+                )
+
+                SymbolLayer(
+                    id = "selected_airport",
+                    source = source,
+                    iconImage = image(markerPainter, drawAsSdf = true),
+                    iconColor = const(Color.Black),
+                    iconSize = const(0.041f),
+                    iconAllowOverlap = const(true),
+                    iconIgnorePlacement = const(true),
+                )
+            }
             if (airplaneValue is Value.Data) {
                 val features = airplaneValue.data.map { airplane ->
                     val point = Point.fromGeoUri("geo:${airplane.latitude},${airplane.longitude}")
@@ -142,7 +173,13 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>, service: HomeService = 
                         ClickResult.Consume
                     },
                     iconImage = image(markerPainter, drawAsSdf = true),
-                    iconColor = const(Color.Blue),
+                    iconColor = switch(
+                        condition(
+                            feature["hex"].asString().eq(const(selectedAirplane?.hex ?: "")),
+                            const(Color.Red)
+                        ),
+                        fallback = const(Color.Blue)
+                    ),
                     iconSize = const(0.041f),
                     iconAllowOverlap = const(true),
                     iconIgnorePlacement = const(true),
