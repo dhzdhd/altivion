@@ -73,7 +73,7 @@ private val AirplaneStateSaver = Saver<Airplane?, String>(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
-fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
+fun InteractiveMap(airplaneValue: Value<List<Airplane>>, service: HomeService = koinInject()) {
     val cameraState = rememberCameraState()
     val styleState = rememberStyleState()
     val baseStyle = BaseStyle.Uri("https://tiles.openfreemap.org/styles/liberty")
@@ -110,7 +110,18 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>) {
                     source = source,
                     onClick = { features ->
                         val airplaneProps = features.first().properties
-//                        selectedAirplane = Json.decodeFromString<Airplane?>(airplaneProps.toString())
+                        val flightOption = airplaneProps?.getValue("flight").toOption()
+                            .map { it.toString().trimStart('"').trimEnd('"').trim() }
+
+                        coroutineScope.launch {
+                            val route = service.getAirplaneRouteAndAirline(flightOption)
+                            println(route)
+                        }
+
+                        ClickResult.Consume
+                    },
+                    onLongClick = { features ->
+                        val airplaneProps = features.first().properties
                         val hexOption = airplaneProps?.getValue("hex").toOption()
                             .map { it.toString().trimStart('"').trimEnd('"') }
                         val hex = hexOption.getOrNull()

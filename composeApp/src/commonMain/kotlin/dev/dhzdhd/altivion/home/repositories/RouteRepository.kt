@@ -11,11 +11,13 @@ import dev.dhzdhd.altivion.home.models.RouteAndAirline
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.URLProtocol
 import io.ktor.http.appendPathSegments
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 import org.koin.core.annotation.Single
 
@@ -73,8 +75,6 @@ data class ADSBDBDTO(
 @Serializable
 data class ADSBDBResponseDTO(
     @SerialName("flightroute") val flightRoute: ADSBDBFlightRouteDTO,
-    val origin: String,
-    val destination: String,
 )
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -135,7 +135,11 @@ class ADSBDBRouteApi(val httpClient: HttpClient) : RouteAPI {
             }.body<ADSBDBDTO>()
 
             resp
-
-        }.mapLeft { AppError.NetworkError("Failed to fetch airplane info from airplanes.live", it) }
+        }.mapLeft {
+            AppError.NetworkError(
+                "Failed to fetch airline and route info from adsbdb.com",
+                it
+            )
+        }
     }
 }
