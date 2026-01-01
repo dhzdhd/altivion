@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -16,7 +17,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import coil3.compose.LocalPlatformContext
+import coil3.compose.SubcomposeAsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import dev.dhzdhd.altivion.common.Value
 import dev.dhzdhd.altivion.home.repositories.AirplaneImage
 
@@ -30,15 +34,19 @@ fun ImageSection(airplaneImage: Value<AirplaneImage>) {
     ) {
         when (airplaneImage) {
             is Value.Data -> {
-                AsyncImage(
-                    airplaneImage.data.image,
+                SubcomposeAsyncImage(
+                    ImageRequest.Builder(context = LocalPlatformContext.current)
+                        .data(airplaneImage.data.image).crossfade(true).build(),
                     contentDescription = airplaneImage.data.link,
                     modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(20.dp)),
                     contentScale = ContentScale.FillBounds,
                 )
             }
 
-            is Value.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            is Value.Loading -> CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center).size(24.dp)
+            )
+
             is Value.Error -> Text(
                 airplaneImage.error.message, modifier = Modifier.align(Alignment.Center)
             )

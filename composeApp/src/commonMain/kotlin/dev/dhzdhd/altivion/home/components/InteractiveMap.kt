@@ -14,6 +14,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -217,7 +219,9 @@ fun AirplaneInfoBottomSheet(
 ) {
     var skipPartiallyExpanded by rememberSaveable { mutableStateOf(false) }
     val bottomSheetState =
-        rememberModalBottomSheetState(skipPartiallyExpanded = skipPartiallyExpanded)
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = skipPartiallyExpanded,
+        )
     var airplaneImage by remember { mutableStateOf<Value<AirplaneImage>>(Value.Loading) }
 
     if (airplane != null) {
@@ -233,6 +237,8 @@ fun AirplaneInfoBottomSheet(
     ModalBottomSheet(
         onDismissRequest = { openBottomSheetState.value = false },
         sheetState = bottomSheetState,
+        properties = ModalBottomSheetProperties(shouldDismissOnClickOutside = false),
+        scrimColor = Color.Transparent
     ) {
         Column(
             modifier = Modifier.padding(all = 16.dp).verticalScroll(
