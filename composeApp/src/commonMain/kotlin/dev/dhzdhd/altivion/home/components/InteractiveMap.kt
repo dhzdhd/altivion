@@ -259,12 +259,12 @@ fun AirplaneInfoBottomSheet(
 fun FlightInfoSection(airplane: Airplane) {
     FlightInfoCard(
         "Aircraft Details", listOf(
-            FlightInfoCardDetails("Type", "", airplane.type.getOrElse { "N/A" }),
-            FlightInfoCardDetails("Airframe", "", airplane.airframe.getOrElse { "N/A" }),
-            FlightInfoCardDetails("Category", "", airplane.category.getOrElse { "N/A" }),
+            FlightInfoCardDetails("Type", null, airplane.type.getOrElse { "N/A" }),
+            FlightInfoCardDetails("Airframe", null, airplane.airframe.getOrElse { "N/A" }),
+            FlightInfoCardDetails("Category", null, airplane.category.getOrElse { "N/A" }),
             FlightInfoCardDetails(
                 "ADS-B Version",
-                "",
+                null,
                 airplane.adsbVersion.map { it.toString() }.getOrElse { "N/A" }),
         )
     )
@@ -280,7 +280,7 @@ fun FlightInfoSection(airplane: Airplane) {
                 airplane.groundSpeed.map { it.toString() }.getOrElse { "N/A" }),
             FlightInfoCardDetails(
                 "Mach",
-                "",
+                null,
                 airplane.mach.map { it.toString() }.getOrElse { "N/A" }),
             FlightInfoCardDetails(
                 "Wind Direction",
@@ -310,7 +310,7 @@ fun FlightInfoSection(airplane: Airplane) {
                 "True Heading",
                 "°",
                 airplane.trueHeading.map { it.toString() }.getOrElse { "N/A" }),
-            FlightInfoCardDetails("Squawk", "", airplane.squawk.getOrElse { "N/A" }),
+            FlightInfoCardDetails("Squawk", null, airplane.squawk.getOrElse { "N/A" }),
             FlightInfoCardDetails(
                 "Time Since Last Msg",
                 "s",
@@ -323,7 +323,7 @@ fun FlightInfoSection(airplane: Airplane) {
     )
 }
 
-data class FlightInfoCardDetails(val title: String, val subtitle: String, val value: String)
+data class FlightInfoCardDetails(val title: String, val subtitle: String?, val value: String)
 
 @Composable
 fun FlightInfoCard(title: String, details: List<FlightInfoCardDetails>) {
@@ -368,7 +368,7 @@ fun FlightInfoCard(title: String, details: List<FlightInfoCardDetails>) {
 
 @Composable
 private fun FlightInfoItemRow(
-    title: String, subtitle: String, value: String, showDivider: Boolean = true
+    title: String, subtitle: String?, value: String, showDivider: Boolean = true
 ) {
     Column {
         Row(
@@ -389,12 +389,14 @@ private fun FlightInfoItemRow(
                     modifier = Modifier.padding(bottom = 2.dp)
                 )
 
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFFCAC4D0),
-                    fontSize = 12.sp
-                )
+                if (subtitle != null) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFFCAC4D0),
+                        fontSize = 12.sp
+                    )
+                }
             }
             Text(
                 text = value, style = MaterialTheme.typography.titleMedium.copy(
