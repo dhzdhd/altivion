@@ -2,7 +2,6 @@ package dev.dhzdhd.altivion.home.repositories
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import coil3.Uri
 import coil3.pathSegments
 import coil3.toUri
 import dev.dhzdhd.altivion.common.AppError
@@ -13,7 +12,6 @@ import io.ktor.client.request.get
 import io.ktor.http.URLProtocol
 import io.ktor.http.appendPathSegments
 import kotlinx.serialization.Serializable
-import okio.Path
 import org.koin.core.annotation.Single
 
 @Serializable

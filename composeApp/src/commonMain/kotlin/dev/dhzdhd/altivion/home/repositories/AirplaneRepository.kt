@@ -136,14 +136,14 @@ data class AirplaneDTO(
     )
 }
 
-interface RouteAPI {
+interface AirplaneAPI {
     suspend fun getAirplanesByLatLon(
         lat: Double, lon: Double, radius: Double
     ): Either<AppError, AirplanesLiveRouteDTO>
 }
 
 @Single
-class AirplanesLiveRouteAPI(private val httpClient: HttpClient): RouteAPI {
+class AirplanesLiveAPI(private val httpClient: HttpClient): AirplaneAPI {
     override suspend fun getAirplanesByLatLon(
         lat: Double, lon: Double, radius: Double
     ): Either<AppError, AirplanesLiveRouteDTO> {

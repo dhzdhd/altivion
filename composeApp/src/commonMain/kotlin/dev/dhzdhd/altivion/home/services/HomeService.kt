@@ -1,14 +1,14 @@
 package dev.dhzdhd.altivion.home.services
 
 import arrow.core.Either
-import com.fleeksoft.ksoup.Ksoup
-import com.fleeksoft.ksoup.network.parseGetRequest
-import com.fleeksoft.ksoup.nodes.Document
+import arrow.core.Option
 import dev.dhzdhd.altivion.common.AppError
 import dev.dhzdhd.altivion.home.models.Airplane
+import dev.dhzdhd.altivion.home.models.RouteAndAirline
+import dev.dhzdhd.altivion.home.repositories.ADSBDBRouteApi
 import dev.dhzdhd.altivion.home.repositories.AirplaneDTO
 import dev.dhzdhd.altivion.home.repositories.AirplaneImage
-import dev.dhzdhd.altivion.home.repositories.AirplanesLiveRouteAPI
+import dev.dhzdhd.altivion.home.repositories.AirplanesLiveAPI
 import dev.dhzdhd.altivion.home.repositories.ImageAPI
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -20,7 +20,7 @@ data class Location(val latitude: Double, val longitude: Double)
 expect fun getLocation(): Either<AppError, Location>
 
 @Single
-class HomeService(private val routeApi: AirplanesLiveRouteAPI, private val imageApi: ImageAPI) {
+class HomeService(private val airplaneApi: AirplanesLiveAPI, private val imageApi: ImageAPI, private val routeApi: ADSBDBRouteApi) {
     fun getAirplanes(
         latitude: Double,
         longitude: Double,
@@ -29,7 +29,7 @@ class HomeService(private val routeApi: AirplanesLiveRouteAPI, private val image
         return flow {
             while (true) {
                 println("Fetching airplane data")
-                emit(routeApi.getAirplanesByLatLon(latitude, longitude, radius).map {
+                emit(airplaneApi.getAirplanesByLatLon(latitude, longitude, radius).map {
                     it.aircraft.map(AirplaneDTO::toAirplane)
                 })
                 delay(2000)
@@ -39,4 +39,7 @@ class HomeService(private val routeApi: AirplanesLiveRouteAPI, private val image
 
     suspend fun getAirplaneImage(airplane: Airplane): Either<AppError, AirplaneImage> =
         imageApi.getImage(airplane)
+
+    suspend fun getAirplaneRouteAndAirline(callsign: Option<String>): Either<AppError, RouteAndAirline> =
+        routeApi.getRouteAndAirlineByAirplaneCallsign(callsign).map { it.toRouteAndAirline() }
 }

@@ -1,7 +1,6 @@
 package dev.dhzdhd.altivion.home.repositories
 
 import arrow.core.Either
-import dev.dhzdhd.altivion.home.models.RouteDTO
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
