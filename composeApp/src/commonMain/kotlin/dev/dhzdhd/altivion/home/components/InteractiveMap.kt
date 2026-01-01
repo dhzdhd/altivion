@@ -31,12 +31,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import arrow.core.Either
+import arrow.core.flatten
 import arrow.core.toOption
 import com.mohamedrejeb.calf.permissions.ExperimentalPermissionsApi
 import com.mohamedrejeb.calf.permissions.Permission
 import com.mohamedrejeb.calf.permissions.rememberPermissionState
+import dev.dhzdhd.altivion.common.AppError
 import dev.dhzdhd.altivion.common.Value
 import dev.dhzdhd.altivion.home.models.Airplane
+import dev.dhzdhd.altivion.home.models.RouteAndAirline
 import dev.dhzdhd.altivion.home.repositories.AirplaneImage
 import dev.dhzdhd.altivion.home.services.HomeService
 import kotlinx.coroutines.launch
@@ -80,11 +83,25 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>, service: HomeService = 
 
     val openBottomSheetState = rememberSaveable { mutableStateOf(false) }
     var selectedAirplane by rememberSaveable(stateSaver = AirplaneStateSaver) { mutableStateOf(null) }
+    var selectedAirlineAndRoute: Value<RouteAndAirline> by remember {
+        mutableStateOf(
+            Value.Loading
+        )
+    }
 
     val markerPainter = painterResource(Res.drawable.plane)
 
     val permissionState = rememberPermissionState(Permission.FineLocation)
     val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(selectedAirplane?.hex, {
+        selectedAirlineAndRoute = Value.fromEither(
+            selectedAirplane?.let { service.getAirplaneRouteAndAirline(it.flight.map { s -> s.trim() }) }
+                .toOption()
+                .toEither { AppError.UnknownError("Route for selected airplane is not available") }
+                .flatten()
+        )
+    })
 
     Box(modifier = Modifier.fillMaxSize()) {
         MaplibreMap(
@@ -109,18 +126,8 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>, service: HomeService = 
                     id = "airplanes",
                     source = source,
                     onClick = { features ->
-                        val airplaneProps = features.first().properties
-                        val flightOption = airplaneProps?.getValue("flight").toOption()
-                            .map { it.toString().trimStart('"').trimEnd('"').trim() }
+                        selectedAirlineAndRoute = Value.Loading
 
-                        coroutineScope.launch {
-                            val route = service.getAirplaneRouteAndAirline(flightOption)
-                            println(route)
-                        }
-
-                        ClickResult.Consume
-                    },
-                    onLongClick = { features ->
                         val airplaneProps = features.first().properties
                         val hexOption = airplaneProps?.getValue("hex").toOption()
                             .map { it.toString().trimStart('"').trimEnd('"') }
@@ -192,7 +199,11 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>, service: HomeService = 
     }
 
     if (openBottomSheetState.value) {
-        AirplaneInfoBottomSheet(selectedAirplane, openBottomSheetState)
+        AirplaneInfoBottomSheet(
+            selectedAirplane,
+            openBottomSheetState,
+            selectedAirlineAndRoute
+        )
     }
 }
 
@@ -201,6 +212,7 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>, service: HomeService = 
 fun AirplaneInfoBottomSheet(
     airplane: Airplane?,
     openBottomSheetState: MutableState<Boolean>,
+    routeAndAirline: Value<RouteAndAirline>,
     homeService: HomeService = koinInject()
 ) {
     var skipPartiallyExpanded by rememberSaveable { mutableStateOf(false) }
@@ -231,7 +243,7 @@ fun AirplaneInfoBottomSheet(
             if (airplane != null) {
                 HeaderSection(airplane)
                 ImageSection(airplaneImage)
-                RouteSection()
+                RouteSection(routeAndAirline)
                 FlightMetricsSection(airplane)
                 FlightInfoSection(airplane)
             } else {

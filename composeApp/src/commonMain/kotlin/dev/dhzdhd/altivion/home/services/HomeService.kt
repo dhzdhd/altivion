@@ -28,7 +28,6 @@ class HomeService(private val airplaneApi: AirplanesLiveAPI, private val imageAp
     ): Flow<Either<AppError, List<Airplane>>> {
         return flow {
             while (true) {
-                println("Fetching airplane data")
                 emit(airplaneApi.getAirplanesByLatLon(latitude, longitude, radius).map {
                     it.aircraft.map(AirplaneDTO::toAirplane)
                 })

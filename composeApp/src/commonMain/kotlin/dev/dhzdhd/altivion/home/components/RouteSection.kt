@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -21,15 +22,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.dhzdhd.altivion.common.Value
+import dev.dhzdhd.altivion.home.models.RouteAndAirline
 
 @Composable
-fun RouteSection() {
-    AirportSection()
-    TimeSection()
+fun RouteSection(routeAndAirline: Value<RouteAndAirline>) {
+    when (routeAndAirline) {
+        is Value.Data -> {
+            AirportSection(routeAndAirline.data)
+            TimeSection()
+        }
+        is Value.Loading -> CircularProgressIndicator()
+        is Value.Error -> Text("Failed to load route information")
+    }
 }
 
 @Composable
-fun AirportSection() {
+fun AirportSection(routeAndAirline: RouteAndAirline) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -39,12 +48,14 @@ fun AirportSection() {
             modifier = Modifier.weight(1f), horizontalAlignment = Alignment.Start
         ) {
             Text(
-                text = "AMS", style = MaterialTheme.typography.displaySmall.copy(
+                text = routeAndAirline.route.origin.iataCode,
+                style = MaterialTheme.typography.displaySmall.copy(
                     fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp
-                ), color = Color.White
+                ),
+                color = Color.White
             )
             Text(
-                text = "Amsterdam",
+                text = routeAndAirline.route.origin.countryName,
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color(0xFFCCC2DC)
             )
@@ -80,12 +91,14 @@ fun AirportSection() {
             modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End
         ) {
             Text(
-                text = "DEL", style = MaterialTheme.typography.displaySmall.copy(
+                text = routeAndAirline.route.destination.iataCode,
+                style = MaterialTheme.typography.displaySmall.copy(
                     fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp
-                ), color = Color.White
+                ),
+                color = Color.White
             )
             Text(
-                text = "Delhi",
+                text = routeAndAirline.route.destination.countryName,
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color(0xFFCCC2DC)
             )
