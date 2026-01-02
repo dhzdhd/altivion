@@ -83,8 +83,8 @@ fun App() {
 
     MaterialTheme(
         colorScheme = when (settings.themeMode) {
-            ThemeMode.LIGHT -> lightColorScheme()
-            ThemeMode.DARK -> darkColorScheme()
+            ThemeMode.Light -> lightColorScheme()
+            ThemeMode.Dark -> darkColorScheme()
         }
     ) {
         Scaffold(
@@ -146,7 +146,7 @@ fun App() {
                         }
                     }
 
-                    HomeView(viewModel = homeViewModel, contentPadding = contentPadding)
+                    HomeView(viewModel = homeViewModel, settings = settings, contentPadding = contentPadding)
                 }
                 composable<TabPage.Search> {
                     LaunchedEffect(Unit) {

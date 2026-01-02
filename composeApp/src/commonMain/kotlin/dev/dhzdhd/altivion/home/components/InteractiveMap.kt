@@ -44,6 +44,7 @@ import dev.dhzdhd.altivion.home.models.Airplane
 import dev.dhzdhd.altivion.home.models.RouteAndAirline
 import dev.dhzdhd.altivion.home.repositories.AirplaneImage
 import dev.dhzdhd.altivion.home.services.HomeService
+import dev.dhzdhd.altivion.settings.viewmodels.MapStyle
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.painterResource
@@ -54,10 +55,13 @@ import org.maplibre.compose.expressions.dsl.asNumber
 import org.maplibre.compose.expressions.dsl.asString
 import org.maplibre.compose.expressions.dsl.condition
 import org.maplibre.compose.expressions.dsl.const
+import org.maplibre.compose.expressions.dsl.convertToString
 import org.maplibre.compose.expressions.dsl.eq
 import org.maplibre.compose.expressions.dsl.feature
+import org.maplibre.compose.expressions.dsl.format
 import org.maplibre.compose.expressions.dsl.image
 import org.maplibre.compose.expressions.dsl.plus
+import org.maplibre.compose.expressions.dsl.span
 import org.maplibre.compose.expressions.dsl.switch
 import org.maplibre.compose.expressions.value.IconRotationAlignment
 import org.maplibre.compose.layers.SymbolLayer
@@ -83,10 +87,10 @@ private val AirplaneStateSaver = Saver<Airplane?, String>(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
-fun InteractiveMap(airplaneValue: Value<List<Airplane>>, service: HomeService = koinInject()) {
+fun InteractiveMap(airplaneValue: Value<List<Airplane>>, mapStyle: MapStyle, service: HomeService = koinInject()) {
     val cameraState = rememberCameraState()
     val styleState = rememberStyleState()
-    val baseStyle = BaseStyle.Uri("https://tiles.openfreemap.org/styles/liberty")
+    val baseStyle = BaseStyle.Uri(mapStyle.url)
 
     val openBottomSheetState = rememberSaveable { mutableStateOf(false) }
     var selectedAirplane by rememberSaveable(stateSaver = AirplaneStateSaver) { mutableStateOf(null) }
@@ -142,6 +146,7 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>, service: HomeService = 
                     iconSize = const(0.041f),
                     iconAllowOverlap = const(true),
                     iconIgnorePlacement = const(true),
+//                    textField = format(span(feature["name"].asString()))
                 )
             }
             if (airplaneValue is Value.Data) {
@@ -184,7 +189,8 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>, service: HomeService = 
                     iconAllowOverlap = const(true),
                     iconIgnorePlacement = const(true),
                     iconRotate = get("track").asNumber().plus(const(270.0f)),
-                    iconRotationAlignment = const(IconRotationAlignment.Map)
+                    iconRotationAlignment = const(IconRotationAlignment.Map),
+//                    textField = feature["flight"].asString()
                 )
             }
         }
@@ -200,32 +206,9 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>, service: HomeService = 
             ExpandingAttributionButton(
                 cameraState = cameraState,
                 styleState = styleState,
-                modifier = Modifier.align(Alignment.BottomEnd),
+                modifier = Modifier.align(Alignment.TopEnd),
                 contentAlignment = Alignment.BottomEnd,
             )
-            FloatingActionButton(onClick = {
-                coroutineScope.launch {
-//                    if (permissionState.status.isNotGranted) {
-//                        permissionState.launchPermissionRequest()
-//                    }
-//
-//                    if (permissionState.status.isGranted) {
-//                        println(locationProvider.location)
-//                        val location = locationProvider.location.value
-//                        println(location)
-//                        cameraState.animateTo(
-//                            CameraPosition(
-//                                target = Position(
-//                                    longitude = location?.position?.longitude!!,
-//                                    latitude = location.position.latitude
-//                                )
-//                            )
-//                        )
-//                    }
-                }
-            }) {
-                Text("Location")
-            }
         }
         if (airplaneValue is Value.Loading) {
             Box(modifier = Modifier.fillMaxSize()) {

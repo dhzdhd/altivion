@@ -13,15 +13,21 @@ import dev.dhzdhd.altivion.home.viewmodels.HomeViewModel
 
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import dev.dhzdhd.altivion.settings.viewmodels.SettingsState
+import dev.dhzdhd.altivion.settings.viewmodels.ThemeMode
 
 @Composable
-fun HomeView(viewModel: HomeViewModel, contentPadding: PaddingValues) {
+fun HomeView(viewModel: HomeViewModel, settings: SettingsState, contentPadding: PaddingValues) {
     val airplanes by viewModel.airplanes.collectAsState()
+    val mapStyle = when (settings.themeMode) {
+        ThemeMode.Light -> settings.lightMapStyle
+        ThemeMode.Dark -> settings.darkMapStyle
+    }
 
     Box(
         modifier = Modifier.background(Color(0, 0, 0, 0))
             .padding(contentPadding).fillMaxSize(),
     ) {
-        InteractiveMap(airplanes)
+        InteractiveMap(airplanes, mapStyle)
     }
 }
