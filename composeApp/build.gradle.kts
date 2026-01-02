@@ -62,6 +62,8 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.kotlinx.coroutines.android)
+
+            implementation(libs.compass.geolocation.mobile)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -92,12 +94,8 @@ kotlin {
             implementation(libs.coil.network.ktor3)
             implementation(libs.calf.permissions)
 
-//            implementation(libs.compass.geolocation)
-//            implementation(libs.compass.geolocation.mobile)
-//            implementation(libs.compass.geolocation.browser)
-//            implementation(libs.compass.autocomplete)
-//            implementation(libs.compass.autocomplete.mobile)
-//            implementation(libs.compass.permissions.mobile)
+//            implementation(libs.compass.core)
+            implementation(libs.compass.geolocation)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -113,6 +111,9 @@ kotlin {
                     requireCapability("org.maplibre.compose:maplibre-native-bindings-jni-${detectTarget()}")
                 }
             }
+        }
+        webMain.dependencies {
+            implementation(libs.compass.geolocation.browser)
         }
     }
 

@@ -6,8 +6,7 @@ import dev.dhzdhd.altivion.home.models.Location
 import org.koin.core.annotation.Single
 
 @Single
-actual class PlatformLocationRepository: LocationRepository {
-    actual override suspend fun getLocation(): Either<AppError, Location> {
-        TODO("Not yet implemented")
-    }
+actual class PlatformLocationRepository actual constructor() : LocationRepository {
+    actual override suspend fun getLocation(): Either<AppError, Location> =
+        Either.Left(AppError.UnimplementedError("Not implemented for web target"))
 }

@@ -15,6 +15,8 @@ sealed interface AppError {
 
     data class NetworkError(override val message: String, val error: Throwable): AppError
     data class UnknownError(override val message: String): AppError
+    data class PermissionError(override val message: String): AppError
+    data class UnimplementedError(override val message: String): AppError
 }
 
 sealed interface Value<out T> {

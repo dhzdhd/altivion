@@ -19,7 +19,7 @@ interface LocationRepository {
 }
 
 @Single
-expect class PlatformLocationRepository : LocationRepository {
+expect class PlatformLocationRepository() : LocationRepository {
     override suspend fun getLocation(): Either<AppError, Location>
 }
 
