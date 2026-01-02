@@ -32,6 +32,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import arrow.core.Either
+import arrow.core.None
+import arrow.core.Option
 import arrow.core.flatten
 import arrow.core.toOption
 import com.mohamedrejeb.calf.permissions.ExperimentalPermissionsApi
@@ -40,6 +42,7 @@ import com.mohamedrejeb.calf.permissions.rememberPermissionState
 import dev.dhzdhd.altivion.common.AppError
 import dev.dhzdhd.altivion.common.Value
 import dev.dhzdhd.altivion.home.models.Airplane
+import dev.dhzdhd.altivion.home.models.Location
 import dev.dhzdhd.altivion.home.models.RouteAndAirline
 import dev.dhzdhd.altivion.home.repositories.AirplaneImage
 import dev.dhzdhd.altivion.home.services.HomeService
@@ -47,6 +50,7 @@ import dev.dhzdhd.altivion.settings.viewmodels.MapStyle
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
+import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.expressions.dsl.Feature.get
 import org.maplibre.compose.expressions.dsl.asNumber
@@ -75,6 +79,7 @@ import org.maplibre.compose.util.ClickResult
 import org.maplibre.spatialk.geojson.Feature
 import org.maplibre.spatialk.geojson.FeatureCollection
 import org.maplibre.spatialk.geojson.Point
+import org.maplibre.spatialk.geojson.Position
 
 private val AirplaneStateSaver = Saver<Airplane?, String>(
     save = { Json.encodeToString(it) },
@@ -82,7 +87,11 @@ private val AirplaneStateSaver = Saver<Airplane?, String>(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
-fun InteractiveMap(airplaneValue: Value<List<Airplane>>, mapStyle: MapStyle, service: HomeService = koinInject()) {
+fun InteractiveMap(
+    airplaneValue: Value<List<Airplane>>,
+    mapStyle: MapStyle,
+    service: HomeService = koinInject()
+) {
     val cameraState = rememberCameraState()
     val styleState = rememberStyleState()
     val baseStyle = BaseStyle.Uri(mapStyle.url)
@@ -94,6 +103,7 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>, mapStyle: MapStyle, ser
             Value.Loading
         )
     }
+    var currentLocation: Option<Location> by remember { mutableStateOf(None) }
 
     val airplanePainter = painterResource(Res.drawable.plane)
     val locationPainter = painterResource(Res.drawable.location)
@@ -108,6 +118,23 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>, mapStyle: MapStyle, ser
                 .toEither { AppError.UnknownError("Route for selected airplane is not available") }
                 .flatten()
         )
+    })
+
+    LaunchedEffect(Unit, {
+        val location = service.getLocation().getOrNull()
+        currentLocation = location.toOption()
+
+        if (location != null) {
+            cameraState.animateTo(
+                CameraPosition(
+                    target = Position(
+                        longitude = location.longitude,
+                        latitude = location.latitude
+                    ),
+                    zoom = 5.0
+                )
+            )
+        }
     })
 
     Box(modifier = Modifier.fillMaxSize()) {
