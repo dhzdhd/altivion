@@ -2,6 +2,7 @@ package dev.dhzdhd.altivion.home.components
 
 import altivion.composeapp.generated.resources.Res
 import altivion.composeapp.generated.resources.plane
+import altivion.composeapp.generated.resources.location
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,11 +12,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -45,7 +44,6 @@ import dev.dhzdhd.altivion.home.models.RouteAndAirline
 import dev.dhzdhd.altivion.home.repositories.AirplaneImage
 import dev.dhzdhd.altivion.home.services.HomeService
 import dev.dhzdhd.altivion.settings.viewmodels.MapStyle
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
@@ -55,13 +53,10 @@ import org.maplibre.compose.expressions.dsl.asNumber
 import org.maplibre.compose.expressions.dsl.asString
 import org.maplibre.compose.expressions.dsl.condition
 import org.maplibre.compose.expressions.dsl.const
-import org.maplibre.compose.expressions.dsl.convertToString
 import org.maplibre.compose.expressions.dsl.eq
 import org.maplibre.compose.expressions.dsl.feature
-import org.maplibre.compose.expressions.dsl.format
 import org.maplibre.compose.expressions.dsl.image
 import org.maplibre.compose.expressions.dsl.plus
-import org.maplibre.compose.expressions.dsl.span
 import org.maplibre.compose.expressions.dsl.switch
 import org.maplibre.compose.expressions.value.IconRotationAlignment
 import org.maplibre.compose.layers.SymbolLayer
@@ -100,7 +95,8 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>, mapStyle: MapStyle, ser
         )
     }
 
-    val markerPainter = painterResource(Res.drawable.plane)
+    val airplanePainter = painterResource(Res.drawable.plane)
+    val locationPainter = painterResource(Res.drawable.location)
 
     val permissionState = rememberPermissionState(Permission.FineLocation)
     val coroutineScope = rememberCoroutineScope()
@@ -141,7 +137,7 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>, mapStyle: MapStyle, ser
                 SymbolLayer(
                     id = "selected_airport",
                     source = source,
-                    iconImage = image(markerPainter, drawAsSdf = true),
+                    iconImage = image(locationPainter, drawAsSdf = true),
                     iconColor = const(Color.Black),
                     iconSize = const(0.041f),
                     iconAllowOverlap = const(true),
@@ -177,7 +173,7 @@ fun InteractiveMap(airplaneValue: Value<List<Airplane>>, mapStyle: MapStyle, ser
                         openBottomSheetState.value = true
                         ClickResult.Consume
                     },
-                    iconImage = image(markerPainter, drawAsSdf = true),
+                    iconImage = image(airplanePainter, drawAsSdf = true),
                     iconColor = switch(
                         condition(
                             feature["hex"].asString().eq(const(selectedAirplane?.hex ?: "")),
