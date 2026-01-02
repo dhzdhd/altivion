@@ -15,10 +15,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.koin.core.annotation.Single
 
-data class Location(val latitude: Double, val longitude: Double)
-
-expect fun getLocation(): Either<AppError, Location>
-
 @Single
 class HomeService(private val airplaneApi: AirplanesLiveAPI, private val imageApi: ImageAPI, private val routeApi: ADSBDBRouteApi) {
     fun getAirplanes(
