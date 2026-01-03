@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 For currently known issues, check the [GitHub issues tab](https://github.com/dhzdhd/altivion/issues?q=is%3Aopen+is%3Aissue+label%3Abug)
 
-## 0.1.0 | 03-01-2026 (Prerelease)
+## 0.1.1 | 03-01-2026 (Prerelease)
 
 ### Additions
 
