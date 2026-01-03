@@ -93,6 +93,8 @@ kotlin {
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
             implementation(libs.calf.permissions)
+            implementation(libs.kermit)
+            implementation(libs.kermit.koin)
 
 //            implementation(libs.compass.core)
             implementation(libs.compass.geolocation)

@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import arrow.core.Either
 import arrow.core.None
 import arrow.core.Option
+import co.touchlab.kermit.Logger
 import dev.dhzdhd.altivion.common.Action
+import dev.dhzdhd.altivion.common.Log
 import dev.dhzdhd.altivion.common.Store
 import dev.dhzdhd.altivion.common.Value
 import dev.dhzdhd.altivion.home.models.Airplane
@@ -35,7 +37,9 @@ sealed interface HomeAction : Action {
 }
 
 @KoinViewModel
-class HomeViewModel(private val service: HomeService) : ViewModel(), Store<HomeAction> {
+class HomeViewModel(private val service: HomeService, private val logger: Logger) : ViewModel(), Store<HomeAction> {
+    private val _logger = logger.withTag("HomeViewModel")
+
     private val _airplanesState = MutableStateFlow<Value<List<Airplane>>>(Value.Loading)
     val airplanes = _airplanesState.asStateFlow()
 
@@ -84,9 +88,8 @@ class HomeViewModel(private val service: HomeService) : ViewModel(), Store<HomeA
         }
     }
 
-    private fun updateCameraState(position: Position, zoom: Double) {
-        println(position)
-        println(zoom)
+    @Log private fun updateCameraState(position: Position, zoom: Double) {
+        _logger.i { "Entered updateCameraState with position: $position and zoom: $zoom" }
         _state.value = _state.value.copy(position = position, zoom = zoom)
         restartFetching()
     }
