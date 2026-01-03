@@ -18,7 +18,6 @@ import dev.dhzdhd.altivion.settings.viewmodels.ThemeMode
 
 @Composable
 fun HomeView(viewModel: HomeViewModel, settings: SettingsState, contentPadding: PaddingValues) {
-    val airplanes by viewModel.airplanes.collectAsState()
     val mapStyle = when (settings.themeMode) {
         ThemeMode.Light -> settings.lightMapStyle
         ThemeMode.Dark -> settings.darkMapStyle
@@ -28,6 +27,6 @@ fun HomeView(viewModel: HomeViewModel, settings: SettingsState, contentPadding: 
         modifier = Modifier.background(Color(0, 0, 0, 0))
             .padding(contentPadding).fillMaxSize(),
     ) {
-        InteractiveMap(airplanes, mapStyle)
+        InteractiveMap(viewModel, mapStyle)
     }
 }

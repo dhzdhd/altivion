@@ -20,6 +20,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +47,8 @@ import dev.dhzdhd.altivion.home.models.Location
 import dev.dhzdhd.altivion.home.models.RouteAndAirline
 import dev.dhzdhd.altivion.home.repositories.AirplaneImage
 import dev.dhzdhd.altivion.home.services.HomeService
+import dev.dhzdhd.altivion.home.viewmodels.HomeAction
+import dev.dhzdhd.altivion.home.viewmodels.HomeViewModel
 import dev.dhzdhd.altivion.settings.viewmodels.MapStyle
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.painterResource
@@ -88,10 +91,12 @@ private val AirplaneStateSaver = Saver<Airplane?, String>(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun InteractiveMap(
-    airplaneValue: Value<List<Airplane>>,
+    viewModel: HomeViewModel,
     mapStyle: MapStyle,
     service: HomeService = koinInject()
 ) {
+    val airplaneValue by viewModel.airplanes.collectAsState()
+
     val cameraState = rememberCameraState()
     val styleState = rememberStyleState()
     val baseStyle = BaseStyle.Uri(mapStyle.url)
@@ -120,7 +125,16 @@ fun InteractiveMap(
         )
     })
 
-    LaunchedEffect(Unit, {
+    LaunchedEffect(cameraState) {
+        viewModel.dispatch(
+            HomeAction.UpdateCameraState(
+                cameraState.position.target,
+                cameraState.position.zoom
+            )
+        )
+    }
+
+    LaunchedEffect(Unit) {
         val location = service.getLocation().getOrNull()
         currentLocation = location.toOption()
 
@@ -135,7 +149,7 @@ fun InteractiveMap(
                 )
             )
         }
-    })
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         MaplibreMap(
@@ -173,7 +187,7 @@ fun InteractiveMap(
                 )
             }
             if (airplaneValue is Value.Data) {
-                val features = airplaneValue.data.map { airplane ->
+                val features = (airplaneValue as Value.Data<List<Airplane>>).data.map { airplane ->
                     val point = Point.fromGeoUri("geo:${airplane.latitude},${airplane.longitude}")
                     Feature(geometry = point, properties = airplane)
                 }
@@ -193,7 +207,9 @@ fun InteractiveMap(
                         val hexOption = airplaneProps?.getValue("hex").toOption()
                             .map { it.toString().trimStart('"').trimEnd('"') }
                         val hex = hexOption.getOrNull()
-                        val airplane = airplaneValue.data.find { it.hex.contentEquals(hex) }
+                        val airplane = (airplaneValue as Value.Data<List<Airplane>>).data.find {
+                            it.hex.contentEquals(hex)
+                        }
 
                         selectedAirplane = airplane
 
