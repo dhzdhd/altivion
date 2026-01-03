@@ -158,8 +158,13 @@ compose.desktop {
     mainClass = "dev.dhzdhd.altivion.MainKt"
 
     nativeDistributions {
-      targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm,
-          TargetFormat.Exe, TargetFormat.AppImage)
+      targetFormats(
+          TargetFormat.Dmg,
+          TargetFormat.Msi,
+          TargetFormat.Deb,
+          TargetFormat.Rpm,
+          TargetFormat.Exe,
+          TargetFormat.AppImage)
       packageName = "dev.dhzdhd.altivion"
       packageVersion = "1.0.0"
     }
