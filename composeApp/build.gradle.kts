@@ -93,8 +93,6 @@ kotlin {
       implementation(libs.calf.permissions)
       implementation(libs.kermit)
       implementation(libs.kermit.koin)
-
-      //            implementation(libs.compass.core)
       implementation(libs.compass.geolocation)
     }
     commonTest.dependencies { implementation(libs.kotlin.test) }
@@ -160,7 +158,8 @@ compose.desktop {
     mainClass = "dev.dhzdhd.altivion.MainKt"
 
     nativeDistributions {
-      targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm)
+      targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm,
+          TargetFormat.Exe, TargetFormat.AppImage)
       packageName = "dev.dhzdhd.altivion"
       packageVersion = "1.0.0"
     }
