@@ -53,22 +53,17 @@ class HomeViewModel(private val service: HomeService) : ViewModel(), Store<HomeA
 
     private fun startFetching() {
         fetchJob?.cancel()
-        fetchJob = viewModelScope.launch {
-            service.getAirplanes(
-                state.value.position.latitude,
-                state.value.position.longitude,
-                calculateRadius(state.value.zoom)
-            )
-                .onEach { result ->
-                    _airplanesState.value = when (result) {
-                        is Either.Left -> Value.Error(result.value)
-                        is Either.Right -> Value.Data(result.value)
-                    }
-                    println(_airplanesState.value)
+        fetchJob = service.getAirplanes(
+            state.value.position.latitude,
+            state.value.position.longitude,
+            calculateRadius(state.value.zoom)
+        ).onEach { result ->
+                _airplanesState.value = when (result) {
+                    is Either.Left -> Value.Error(result.value)
+                    is Either.Right -> Value.Data(result.value)
                 }
-                .launchIn(viewModelScope)
-
-        }
+                println(_airplanesState.value)
+            }.launchIn(viewModelScope)
     }
 
     private fun stopFetching() {
@@ -90,6 +85,8 @@ class HomeViewModel(private val service: HomeService) : ViewModel(), Store<HomeA
     }
 
     private fun updateCameraState(position: Position, zoom: Double) {
+        println(position)
+        println(zoom)
         _state.value = _state.value.copy(position = position, zoom = zoom)
         restartFetching()
     }

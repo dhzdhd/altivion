@@ -28,6 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,6 +51,9 @@ import dev.dhzdhd.altivion.home.services.HomeService
 import dev.dhzdhd.altivion.home.viewmodels.HomeAction
 import dev.dhzdhd.altivion.home.viewmodels.HomeViewModel
 import dev.dhzdhd.altivion.settings.viewmodels.MapStyle
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.debounce
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
@@ -88,7 +92,7 @@ private val AirplaneStateSaver = Saver<Airplane?, String>(
     save = { Json.encodeToString(it) },
     restore = { Json.decodeFromString<Airplane?>(it) })
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class, FlowPreview::class)
 @Composable
 fun InteractiveMap(
     viewModel: HomeViewModel,
@@ -125,31 +129,35 @@ fun InteractiveMap(
         )
     })
 
-    LaunchedEffect(cameraState) {
-        viewModel.dispatch(
-            HomeAction.UpdateCameraState(
-                cameraState.position.target,
-                cameraState.position.zoom
-            )
-        )
-    }
-
     LaunchedEffect(Unit) {
-        val location = service.getLocation().getOrNull()
-        currentLocation = location.toOption()
-
-        if (location != null) {
-            cameraState.animateTo(
-                CameraPosition(
-                    target = Position(
-                        longitude = location.longitude,
-                        latitude = location.latitude
-                    ),
-                    zoom = 5.0
+        snapshotFlow { cameraState.position }
+            .debounce(3000)
+            .collect { position ->
+                viewModel.dispatch(
+                    HomeAction.UpdateCameraState(
+                        position.target,
+                        position.zoom
+                    )
                 )
-            )
-        }
+            }
     }
+
+//    LaunchedEffect(Unit) {
+//        val location = service.getLocation().getOrNull()
+//        currentLocation = location.toOption()
+//
+//        if (location != null) {
+//            cameraState.animateTo(
+//                CameraPosition(
+//                    target = Position(
+//                        longitude = location.longitude,
+//                        latitude = location.latitude
+//                    ),
+//                    zoom = 5.0
+//                )
+//            )
+//        }
+//    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         MaplibreMap(
