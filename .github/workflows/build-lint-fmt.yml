@@ -1,4 +1,4 @@
-name: Node.js Package
+name: Build, format and lint
 
 on:
   push:
@@ -22,3 +22,6 @@ jobs:
 
       - name: Build project
         run: ./gradlew build 
+
+      - name: Check formatting
+        run: ./gradlew ktfmtCheck
