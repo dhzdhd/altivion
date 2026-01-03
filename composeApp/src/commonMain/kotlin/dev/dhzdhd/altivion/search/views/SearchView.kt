@@ -20,20 +20,16 @@ import dev.dhzdhd.altivion.search.viewmodels.SearchViewModel
 
 @Composable
 fun SearchView(viewModel: SearchViewModel, contentPadding: PaddingValues) {
-    Box(
-        modifier = Modifier.background(Color(0, 0, 0, 0))
-            .padding(contentPadding).fillMaxSize(),
-    ) {
-        Column {
-            OutlinedTextField(
-                state = rememberTextFieldState(),
-                lineLimits = TextFieldLineLimits.SingleLine,
-                label = { Text("ICAO | IATA | Airport | Airplane") },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-            )
-            LazyColumn {
-
-            }
-        }
+  Box(
+      modifier = Modifier.background(Color(0, 0, 0, 0)).padding(contentPadding).fillMaxSize(),
+  ) {
+    Column {
+      OutlinedTextField(
+          state = rememberTextFieldState(),
+          lineLimits = TextFieldLineLimits.SingleLine,
+          label = { Text("ICAO | IATA | Airport | Airplane") },
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp))
+      LazyColumn {}
     }
+  }
 }

@@ -28,6 +28,8 @@ arrow = "2.2.1.1"
 navigationCompose = "2.9.1"
 compass = "3.0.0"
 compass-core = "1.6.7"
+ktfmt = "0.25.0"
+detekt = "1.23.8"
 
 [libraries]
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
@@ -85,3 +87,5 @@ androidLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref 
 
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

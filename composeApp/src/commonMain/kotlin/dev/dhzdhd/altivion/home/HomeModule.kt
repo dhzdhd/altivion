@@ -10,10 +10,5 @@ import org.koin.core.annotation.Single
 @Module
 @ComponentScan
 class HomeModule {
-    @Single
-    fun httpClient() = HttpClient {
-        install(ContentNegotiation) {
-            json()
-        }
-    }
+  @Single fun httpClient() = HttpClient { install(ContentNegotiation) { json() } }
 }

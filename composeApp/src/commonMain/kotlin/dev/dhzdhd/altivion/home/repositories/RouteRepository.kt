@@ -11,13 +11,11 @@ import dev.dhzdhd.altivion.home.models.RouteAndAirline
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.URLProtocol
 import io.ktor.http.appendPathSegments
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 import org.koin.core.annotation.Single
 
@@ -25,9 +23,10 @@ import org.koin.core.annotation.Single
 data class ADSBDBDTO(
     val response: ADSBDBResponseDTO,
 ) {
-    fun toRouteAndAirline(): RouteAndAirline {
-        val originDTO = response.flightRoute.origin
-        val origin = Airport(
+  fun toRouteAndAirline(): RouteAndAirline {
+    val originDTO = response.flightRoute.origin
+    val origin =
+        Airport(
             countryISOName = originDTO.countryISOName,
             countryName = originDTO.countryName,
             elevation = originDTO.elevation,
@@ -39,8 +38,9 @@ data class ADSBDBDTO(
             name = originDTO.name,
         )
 
-        val destinationDTO = response.flightRoute.destination
-        val destination = Airport(
+    val destinationDTO = response.flightRoute.destination
+    val destination =
+        Airport(
             countryISOName = destinationDTO.countryISOName,
             countryName = destinationDTO.countryName,
             elevation = destinationDTO.elevation,
@@ -52,8 +52,9 @@ data class ADSBDBDTO(
             name = destinationDTO.name,
         )
 
-        val airlineDTO = response.flightRoute.airline
-        val airline = Airline(
+    val airlineDTO = response.flightRoute.airline
+    val airline =
+        Airline(
             name = airlineDTO.name,
             icao = airlineDTO.icao,
             iata = Option.fromNullable(airlineDTO.iata),
@@ -62,14 +63,9 @@ data class ADSBDBDTO(
             callsign = Option.fromNullable(airlineDTO.callsign),
         )
 
-        return RouteAndAirline(
-            route = Route(
-                origin = origin,
-                destination = destination
-            ),
-            airline = airline
-        )
-    }
+    return RouteAndAirline(
+        route = Route(origin = origin, destination = destination), airline = airline)
+  }
 }
 
 @Serializable
@@ -115,31 +111,36 @@ data class ADSBDBAirportDTO(
 )
 
 interface RouteAPI {
-    suspend fun getRouteAndAirlineByAirplaneCallsign(callsign: Option<String>): Either<AppError, ADSBDBDTO>
+  suspend fun getRouteAndAirlineByAirplaneCallsign(
+      callsign: Option<String>
+  ): Either<AppError, ADSBDBDTO>
 }
 
 @Single
 class ADSBDBRouteApi(val httpClient: HttpClient) : RouteAPI {
-    override suspend fun getRouteAndAirlineByAirplaneCallsign(callsign: Option<String>): Either<AppError, ADSBDBDTO> {
-        return Either.catch {
-            val resp = httpClient.get {
-                url {
-                    protocol = URLProtocol.HTTPS
-                    host = "api.adsbdb.com"
-                    appendPathSegments(
-                        "v0",
-                        "callsign",
-                        callsign.getOrElse { "" },
-                    )
-                }
-            }.body<ADSBDBDTO>()
+  override suspend fun getRouteAndAirlineByAirplaneCallsign(
+      callsign: Option<String>
+  ): Either<AppError, ADSBDBDTO> {
+    return Either.catch {
+          val resp =
+              httpClient
+                  .get {
+                    url {
+                      protocol = URLProtocol.HTTPS
+                      host = "api.adsbdb.com"
+                      appendPathSegments(
+                          "v0",
+                          "callsign",
+                          callsign.getOrElse { "" },
+                      )
+                    }
+                  }
+                  .body<ADSBDBDTO>()
 
-            resp
-        }.mapLeft {
-            AppError.NetworkError(
-                "Failed to fetch airline and route info from adsbdb.com",
-                it
-            )
+          resp
         }
-    }
+        .mapLeft {
+          AppError.NetworkError("Failed to fetch airline and route info from adsbdb.com", it)
+        }
+  }
 }

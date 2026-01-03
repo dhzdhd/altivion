@@ -7,14 +7,12 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import org.koin.android.annotation.KoinViewModel
 
-sealed interface SearchAction: Action {
-}
+sealed interface SearchAction : Action {}
 
 @KoinViewModel
-class SearchViewModel(): ViewModel(), Store<SearchAction> {
-    private val _snackBarEvents = MutableSharedFlow<String>()
-    val snackBarEvents = _snackBarEvents.asSharedFlow()
+class SearchViewModel() : ViewModel(), Store<SearchAction> {
+  private val _snackBarEvents = MutableSharedFlow<String>()
+  val snackBarEvents = _snackBarEvents.asSharedFlow()
 
-    override fun dispatch(action: SearchAction) {
-    }
+  override fun dispatch(action: SearchAction) {}
 }

@@ -12,23 +12,19 @@ import org.koin.core.annotation.Module
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.includes
 import org.koin.ksp.generated.startKoin
-import org.koin.mp.KoinPlatform
 
 @Configuration
 @Module(includes = [HomeModule::class, SearchModule::class, SettingsModule::class])
 class AppModule {
-    @Factory
-    fun provideLogger(): Logger = Logger
+  @Factory fun provideLogger(): Logger = Logger
 }
 
-@KoinApplication
-object KoinApp
+@KoinApplication object KoinApp
 
 fun initKoin(configuration: KoinAppDeclaration? = null) {
-    KoinApp.startKoin {
-        logger(KermitKoinLogger(Logger.withTag("Koin")))
-        includes(configuration)
-        configuration?.invoke(this)
-    }
+  KoinApp.startKoin {
+    logger(KermitKoinLogger(Logger.withTag("Koin")))
+    includes(configuration)
+    configuration?.invoke(this)
+  }
 }
-

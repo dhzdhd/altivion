@@ -2,9 +2,7 @@ package dev.dhzdhd.altivion.home.services
 
 import arrow.core.Either
 import arrow.core.Option
-import arrow.core.combine
 import arrow.core.handleErrorWith
-import arrow.core.raise.context.bind
 import dev.dhzdhd.altivion.common.AppError
 import dev.dhzdhd.altivion.home.models.Airplane
 import dev.dhzdhd.altivion.home.models.Location
@@ -29,30 +27,33 @@ class HomeService(
     private val webLocationRepository: WebLocationRepository,
     private val platformLocationRepository: PlatformLocationRepository
 ) {
-    fun getAirplanes(
-        latitude: Double,
-        longitude: Double,
-        radius: Double
-    ): Flow<Either<AppError, List<Airplane>>> {
-        return flow {
-            while (true) {
-                emit(airplaneApi.getAirplanesByLatLon(latitude, longitude, radius).map {
-                    it.aircraft.map(AirplaneDTO::toAirplane)
-                })
-                delay(2000)
-            }
-        }
+  fun getAirplanes(
+      latitude: Double,
+      longitude: Double,
+      radius: Double
+  ): Flow<Either<AppError, List<Airplane>>> {
+    return flow {
+      while (true) {
+        emit(
+            airplaneApi.getAirplanesByLatLon(latitude, longitude, radius).map {
+              it.aircraft.map(AirplaneDTO::toAirplane)
+            })
+        delay(2000)
+      }
     }
+  }
 
-    suspend fun getAirplaneImage(airplane: Airplane): Either<AppError, AirplaneImage> =
-        imageApi.getImage(airplane)
+  suspend fun getAirplaneImage(airplane: Airplane): Either<AppError, AirplaneImage> =
+      imageApi.getImage(airplane)
 
-    suspend fun getAirplaneRouteAndAirline(callsign: Option<String>): Either<AppError, RouteAndAirline> =
-        routeApi.getRouteAndAirlineByAirplaneCallsign(callsign).map { it.toRouteAndAirline() }
+  suspend fun getAirplaneRouteAndAirline(
+      callsign: Option<String>
+  ): Either<AppError, RouteAndAirline> =
+      routeApi.getRouteAndAirlineByAirplaneCallsign(callsign).map { it.toRouteAndAirline() }
 
-    suspend fun getLocation(): Either<AppError, Location> {
-        return platformLocationRepository.getLocation().handleErrorWith {
-            webLocationRepository.getLocation()
-        }
+  suspend fun getLocation(): Either<AppError, Location> {
+    return platformLocationRepository.getLocation().handleErrorWith {
+      webLocationRepository.getLocation()
     }
+  }
 }

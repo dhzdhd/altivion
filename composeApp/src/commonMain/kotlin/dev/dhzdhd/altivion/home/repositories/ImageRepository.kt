@@ -22,28 +22,32 @@ data class AirplaneImage(val image: String, val link: String, val photographer: 
 
 @Single
 class ImageAPI(private val httpClient: HttpClient) {
-    suspend fun getImage(airplane: Airplane): Either<AppError, AirplaneImage> {
-        return Either.catch {
-            val resp = httpClient.get {
-                url {
-                    protocol = URLProtocol.HTTPS
-                    host = "airport-data.com"
-                    appendPathSegments(
-                        "api",
-                        "ac_thumb.json"
-                    )
-                    parameters.append("m", airplane.hex.uppercase())
-                    parameters.append("n", "1")
-                    parameters.append("r", airplane.registration.getOrElse { "" }.trim().uppercase())
-                }
-            }.body<AirplaneImageDTO>()
+  suspend fun getImage(airplane: Airplane): Either<AppError, AirplaneImage> {
+    return Either.catch {
+          val resp =
+              httpClient
+                  .get {
+                    url {
+                      protocol = URLProtocol.HTTPS
+                      host = "airport-data.com"
+                      appendPathSegments("api", "ac_thumb.json")
+                      parameters.append("m", airplane.hex.uppercase())
+                      parameters.append("n", "1")
+                      parameters.append(
+                          "r", airplane.registration.getOrElse { "" }.trim().uppercase())
+                    }
+                  }
+                  .body<AirplaneImageDTO>()
 
-            val data = resp.data.map {
-                val imageId = it.link.toUri().pathSegments.last().removePrefix("000").removeSuffix(".html")
+          val data =
+              resp.data.map {
+                val imageId =
+                    it.link.toUri().pathSegments.last().removePrefix("000").removeSuffix(".html")
                 val imageLink = "https://image.airport-data.com/aircraft/$imageId.jpg"
-                it.copy(image=imageLink)
-            }
-            return Either.Right(data.first())
-        }.mapLeft { AppError.NetworkError("Failed to fetch airplane image", it) }
-    }
+                it.copy(image = imageLink)
+              }
+          return Either.Right(data.first())
+        }
+        .mapLeft { AppError.NetworkError("Failed to fetch airplane image", it) }
+  }
 }

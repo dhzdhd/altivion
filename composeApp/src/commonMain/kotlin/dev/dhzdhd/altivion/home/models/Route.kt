@@ -8,17 +8,9 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 
-@Serializable
-data class RouteAndAirline(
-    val route: Route,
-    val airline: Airline
-)
+@Serializable data class RouteAndAirline(val route: Route, val airline: Airline)
 
-@Serializable
-data class Route(
-    val origin: Airport,
-    val destination: Airport
-)
+@Serializable data class Route(val origin: Airport, val destination: Airport)
 
 @Serializable
 data class Airline(

@@ -7,6 +7,6 @@ import org.koin.core.annotation.Single
 
 @Single
 actual class PlatformLocationRepository actual constructor() : LocationRepository {
-    actual override suspend fun getLocation(): Either<AppError, Location> =
-        Either.Left(AppError.UnimplementedError("Not implemented for web target"))
+  actual override suspend fun getLocation(): Either<AppError, Location> =
+      Either.Left(AppError.UnimplementedError("Not implemented for web target"))
 }

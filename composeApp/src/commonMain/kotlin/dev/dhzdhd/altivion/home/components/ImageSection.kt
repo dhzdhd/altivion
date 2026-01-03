@@ -26,30 +26,31 @@ import dev.dhzdhd.altivion.home.repositories.AirplaneImage
 
 @Composable
 fun ImageSection(airplaneImage: Value<AirplaneImage>) {
-    Box(
-        modifier = Modifier.fillMaxWidth().height(250.dp).border(
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.inversePrimary),
-            shape = RoundedCornerShape(20.dp)
-        )
-    ) {
+  Box(
+      modifier =
+          Modifier.fillMaxWidth()
+              .height(250.dp)
+              .border(
+                  border = BorderStroke(1.dp, MaterialTheme.colorScheme.inversePrimary),
+                  shape = RoundedCornerShape(20.dp))) {
         when (airplaneImage) {
-            is Value.Data -> {
-                SubcomposeAsyncImage(
-                    ImageRequest.Builder(context = LocalPlatformContext.current)
-                        .data(airplaneImage.data.image).crossfade(true).build(),
-                    contentDescription = airplaneImage.data.link,
-                    modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(20.dp)),
-                    contentScale = ContentScale.FillBounds,
-                )
-            }
-
-            is Value.Loading -> CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center).size(24.dp)
+          is Value.Data -> {
+            SubcomposeAsyncImage(
+                ImageRequest.Builder(context = LocalPlatformContext.current)
+                    .data(airplaneImage.data.image)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = airplaneImage.data.link,
+                modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(20.dp)),
+                contentScale = ContentScale.FillBounds,
             )
+          }
 
-            is Value.Error -> Text(
-                airplaneImage.error.message, modifier = Modifier.align(Alignment.Center)
-            )
+          is Value.Loading ->
+              CircularProgressIndicator(modifier = Modifier.align(Alignment.Center).size(24.dp))
+
+          is Value.Error ->
+              Text(airplaneImage.error.message, modifier = Modifier.align(Alignment.Center))
         }
-    }
+      }
 }

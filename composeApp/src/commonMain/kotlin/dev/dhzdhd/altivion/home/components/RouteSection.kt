@@ -27,138 +27,115 @@ import dev.dhzdhd.altivion.home.models.RouteAndAirline
 
 @Composable
 fun RouteSection(routeAndAirline: Value<RouteAndAirline>) {
-    when (routeAndAirline) {
-        is Value.Data -> {
-            AirportSection(routeAndAirline.data)
-            TimeSection()
-        }
-        is Value.Loading -> CircularProgressIndicator()
-        is Value.Error -> Text("Failed to load route information")
+  when (routeAndAirline) {
+    is Value.Data -> {
+      AirportSection(routeAndAirline.data)
+      TimeSection()
     }
+    is Value.Loading -> CircularProgressIndicator()
+    is Value.Error -> Text("Failed to load route information")
+  }
 }
 
 @Composable
 fun AirportSection(routeAndAirline: RouteAndAirline) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(
-            modifier = Modifier.weight(1f), horizontalAlignment = Alignment.Start
-        ) {
-            Text(
-                text = routeAndAirline.route.origin.iataCode,
-                style = MaterialTheme.typography.displaySmall.copy(
-                    fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp
-                ),
-                color = Color.White
-            )
-            Text(
-                text = routeAndAirline.route.origin.countryName,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFFCCC2DC)
-            )
+  Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically) {
+        Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
+          Text(
+              text = routeAndAirline.route.origin.iataCode,
+              style =
+                  MaterialTheme.typography.displaySmall.copy(
+                      fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
+              color = Color.White)
+          Text(
+              text = routeAndAirline.route.origin.countryName,
+              style = MaterialTheme.typography.bodyMedium,
+              color = Color(0xFFCCC2DC))
         }
         Column(
             modifier = Modifier.weight(1f).padding(horizontal = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = "✈",
-                fontSize = 24.sp,
-            )
+            verticalArrangement = Arrangement.spacedBy(8.dp)) {
+              Text(
+                  text = "✈",
+                  fontSize = 24.sp,
+              )
 
-            Box(
-                modifier = Modifier.fillMaxWidth().height(2.dp).background(
-                    brush = Brush.horizontalGradient(
-                        0f to Color(0xFF6750A4),
-                        50f to Color(0xFF6750A4),
-                        50f to Color(0x33FFFFFF),
-                        1f to Color(0x33FFFFFF)
-                    )
-                )
-            )
-            Text(
-                text = "07h 34m",
-                style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFFCCC2DC),
-                fontSize = 11.sp
-            )
+              Box(
+                  modifier =
+                      Modifier.fillMaxWidth()
+                          .height(2.dp)
+                          .background(
+                              brush =
+                                  Brush.horizontalGradient(
+                                      0f to Color(0xFF6750A4),
+                                      50f to Color(0xFF6750A4),
+                                      50f to Color(0x33FFFFFF),
+                                      1f to Color(0x33FFFFFF))))
+              Text(
+                  text = "07h 34m",
+                  style = MaterialTheme.typography.labelSmall,
+                  color = Color(0xFFCCC2DC),
+                  fontSize = 11.sp)
+            }
+        Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+          Text(
+              text = routeAndAirline.route.destination.iataCode,
+              style =
+                  MaterialTheme.typography.displaySmall.copy(
+                      fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
+              color = Color.White)
+          Text(
+              text = routeAndAirline.route.destination.countryName,
+              style = MaterialTheme.typography.bodyMedium,
+              color = Color(0xFFCCC2DC))
         }
-        Column(
-            modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End
-        ) {
-            Text(
-                text = routeAndAirline.route.destination.iataCode,
-                style = MaterialTheme.typography.displaySmall.copy(
-                    fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp
-                ),
-                color = Color.White
-            )
-            Text(
-                text = routeAndAirline.route.destination.countryName,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFFCCC2DC)
-            )
-        }
-    }
+      }
 }
 
 @Composable
 fun TimeSection() {
-    Row(
-        modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        TimeCard(
-            modifier = Modifier.weight(1f), label = "DEPARTED", time = "1:06 PM", status = "Actual"
-        )
-        TimeCard(
-            modifier = Modifier.weight(1f),
-            label = "ESTIMATED ARRIVAL",
-            time = "1:12 AM",
-            status = "Delayed"
-        )
-    }
+  Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    TimeCard(
+        modifier = Modifier.weight(1f), label = "DEPARTED", time = "1:06 PM", status = "Actual")
+    TimeCard(
+        modifier = Modifier.weight(1f),
+        label = "ESTIMATED ARRIVAL",
+        time = "1:12 AM",
+        status = "Delayed")
+  }
 }
 
 @Composable
-private fun TimeCard(
-    modifier: Modifier = Modifier, label: String, time: String, status: String
-) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
-        color = Color(0x14FFFFFF),
-        border = BorderStroke(1.dp, Color(0x1AFFFFFF))
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp)
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall.copy(
-                    letterSpacing = 0.5.sp
-                ),
-                color = Color(0xFFCCC2DC),
-                fontSize = 11.sp,
-                modifier = Modifier.padding(bottom = 6.dp)
-            )
+private fun TimeCard(modifier: Modifier = Modifier, label: String, time: String, status: String) {
+  Surface(
+      modifier = modifier,
+      shape = RoundedCornerShape(12.dp),
+      color = Color(0x14FFFFFF),
+      border = BorderStroke(1.dp, Color(0x1AFFFFFF))) {
+        Column(modifier = Modifier.padding(12.dp)) {
+          Text(
+              text = label,
+              style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.5.sp),
+              color = Color(0xFFCCC2DC),
+              fontSize = 11.sp,
+              modifier = Modifier.padding(bottom = 6.dp))
 
-            Text(
-                text = time, style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.SemiBold
-                ), color = Color.White, fontSize = 20.sp
-            )
+          Text(
+              text = time,
+              style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+              color = Color.White,
+              fontSize = 20.sp)
 
-            Text(
-                text = status,
-                style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFFA0A0A0),
-                fontSize = 11.sp,
-                modifier = Modifier.padding(top = 2.dp)
-            )
+          Text(
+              text = status,
+              style = MaterialTheme.typography.labelSmall,
+              color = Color(0xFFA0A0A0),
+              fontSize = 11.sp,
+              modifier = Modifier.padding(top = 2.dp))
         }
-    }
+      }
 }

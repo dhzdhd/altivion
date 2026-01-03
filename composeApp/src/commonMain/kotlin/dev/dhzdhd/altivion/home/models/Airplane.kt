@@ -1,4 +1,3 @@
-
 @file:UseSerializers(OptionSerializer::class)
 
 package dev.dhzdhd.altivion.home.models

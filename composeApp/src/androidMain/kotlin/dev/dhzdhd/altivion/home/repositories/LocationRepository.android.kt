@@ -10,18 +10,18 @@ import org.koin.core.annotation.Single
 
 @Single
 actual class PlatformLocationRepository actual constructor() : LocationRepository {
-    actual override suspend fun getLocation(): Either<AppError, Location> {
-        val locationResult: GeolocatorResult = Geolocator.mobile().current()
+  actual override suspend fun getLocation(): Either<AppError, Location> {
+    val locationResult: GeolocatorResult = Geolocator.mobile().current()
 
-        return when (locationResult) {
-            is GeolocatorResult.Success -> Either.Right(
-                Location(
-                    locationResult.data.coordinates.latitude,
-                    locationResult.data.coordinates.longitude
-                )
-            )
-            is GeolocatorResult.PermissionDenied -> Either.Left(AppError.PermissionError("Location permissions not found"))
-            else -> Either.Left(AppError.UnknownError("Failed to fetch location"))
-        }
+    return when (locationResult) {
+      is GeolocatorResult.Success ->
+          Either.Right(
+              Location(
+                  locationResult.data.coordinates.latitude,
+                  locationResult.data.coordinates.longitude))
+      is GeolocatorResult.PermissionDenied ->
+          Either.Left(AppError.PermissionError("Location permissions not found"))
+      else -> Either.Left(AppError.UnknownError("Failed to fetch location"))
     }
+  }
 }

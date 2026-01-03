@@ -9,35 +9,29 @@ import io.ktor.client.request.get
 import kotlinx.serialization.Serializable
 import org.koin.core.annotation.Single
 
-
-@Serializable
-private data class IpLocation(val latitude: Double, val longitude: Double)
-
+@Serializable private data class IpLocation(val latitude: Double, val longitude: Double)
 
 interface LocationRepository {
-    suspend fun getLocation(): Either<AppError, Location>
+  suspend fun getLocation(): Either<AppError, Location>
 }
 
 @Single
 expect class PlatformLocationRepository() : LocationRepository {
-    override suspend fun getLocation(): Either<AppError, Location>
+  override suspend fun getLocation(): Either<AppError, Location>
 }
 
 @Single
 class WebLocationRepository(private val client: HttpClient) : LocationRepository {
-    override suspend fun getLocation(): Either<AppError, Location> {
-        return Either.catch {
-            val response: IpLocation = client.get("https://ipapi.co/json").body()
-            client.close()
+  override suspend fun getLocation(): Either<AppError, Location> {
+    return Either.catch {
+          val response: IpLocation = client.get("https://ipapi.co/json").body()
+          client.close()
 
-            Location(response.latitude, response.longitude)
-        }.mapLeft {
-            client.close()
-            AppError.NetworkError(
-                message = it.message ?: "",
-                error = it
-            )
+          Location(response.latitude, response.longitude)
         }
-    }
+        .mapLeft {
+          client.close()
+          AppError.NetworkError(message = it.message ?: "", error = it)
+        }
+  }
 }
-

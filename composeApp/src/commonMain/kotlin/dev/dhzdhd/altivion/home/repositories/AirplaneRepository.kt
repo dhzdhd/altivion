@@ -80,90 +80,97 @@ data class AirplaneDTO(
     @SerialName("dst") val receiverDist: Double? = null,
     @SerialName("dir") val receiverDir: Double? = null,
 ) {
-    fun toAirplane(): Airplane = Airplane(
-        hex = hex,
-        type = Option.fromNullable(type),
-        flight = Option.fromNullable(flight),
-        registration = Option.fromNullable(registration),
-        airframe = Option.fromNullable(airframe),
-        description = Option.fromNullable(desc),
-        latitude = lat,
-        longitude = lon,
-        barometricAltitude = Option.fromNullable(altBaro),
-        geometricAltitude = Option.fromNullable(altGeom),
-        groundSpeed = Option.fromNullable(groundSpeed),
-        indicatedAirSpeed = Option.fromNullable(indicatedAirSpeed),
-        trueAirSpeed = Option.fromNullable(trueAirSpeed),
-        mach = Option.fromNullable(mach),
-        windDirection = Option.fromNullable(windDirection),
-        windSpeed = Option.fromNullable(windSpeed),
-        outsideAirTemperature = Option.fromNullable(outsideAirTemp),
-        totalAirTemperature = Option.fromNullable(totalAirTemp),
-        track = Option.fromNullable(track),
-        trackRate = Option.fromNullable(trackRate),
-        roll = Option.fromNullable(roll),
-        magneticHeading = Option.fromNullable(magneticHeading),
-        trueHeading = Option.fromNullable(trueHeading),
-        barometricRate = Option.fromNullable(baroRate),
-        geometricRate = Option.fromNullable(geomRate),
-        squawk = Option.fromNullable(squawk),
-        emergency = Option.fromNullable(emergency),
-        category = Option.fromNullable(category),
-        navigationQnh = Option.fromNullable(navQnh),
-        navigationAltitudeMcp = Option.fromNullable(navAltitudeMcp),
-        navigationHeading = Option.fromNullable(navHeading),
-        navigationModes = navModes,
-        navigationIntegrityCategory = Option.fromNullable(navIntegrityCategory),
-        radiusOfContainment = Option.fromNullable(containmentRadius),
-        barometricAltitudeIntegrity = Option.fromNullable(baroAltIntegrity),
-        navigationAccuracyPosition = Option.fromNullable(navAccuracyPosition),
-        navigationAccuracyVelocity = Option.fromNullable(navAccuracyVelocity),
-        sourceIntegrityLevel = Option.fromNullable(sourceIntegrityLevel),
-        sourceIntegrityLevelType = Option.fromNullable(silType),
-        geometricVerticalAccuracy = Option.fromNullable(geometricVerticalAccuracy),
-        systemDesignAssurance = Option.fromNullable(systemDesignAssurance),
-        alertFlag = Option.fromNullable(alertFlag),
-        specialPurposeIndicator = Option.fromNullable(specialPurposeIndicator),
-        adsbVersion = Option.fromNullable(adsbVersion),
-        timeSinceLastMessage = Option.fromNullable(timeSinceLastMsg),
-        timeSinceLastPosition = Option.fromNullable(timeSinceLastPos),
-        totalMessages = Option.fromNullable(totalMessages),
-        signalStrength = Option.fromNullable(signalStrength),
-        multilateration = multilaterationData,
-        trafficInfoServiceBroadcast = trafficInfoServiceBroadcast,
-        receiverDistance = Option.fromNullable(receiverDist),
-        receiverDirection = Option.fromNullable(receiverDir)
-    )
+  fun toAirplane(): Airplane =
+      Airplane(
+          hex = hex,
+          type = Option.fromNullable(type),
+          flight = Option.fromNullable(flight),
+          registration = Option.fromNullable(registration),
+          airframe = Option.fromNullable(airframe),
+          description = Option.fromNullable(desc),
+          latitude = lat,
+          longitude = lon,
+          barometricAltitude = Option.fromNullable(altBaro),
+          geometricAltitude = Option.fromNullable(altGeom),
+          groundSpeed = Option.fromNullable(groundSpeed),
+          indicatedAirSpeed = Option.fromNullable(indicatedAirSpeed),
+          trueAirSpeed = Option.fromNullable(trueAirSpeed),
+          mach = Option.fromNullable(mach),
+          windDirection = Option.fromNullable(windDirection),
+          windSpeed = Option.fromNullable(windSpeed),
+          outsideAirTemperature = Option.fromNullable(outsideAirTemp),
+          totalAirTemperature = Option.fromNullable(totalAirTemp),
+          track = Option.fromNullable(track),
+          trackRate = Option.fromNullable(trackRate),
+          roll = Option.fromNullable(roll),
+          magneticHeading = Option.fromNullable(magneticHeading),
+          trueHeading = Option.fromNullable(trueHeading),
+          barometricRate = Option.fromNullable(baroRate),
+          geometricRate = Option.fromNullable(geomRate),
+          squawk = Option.fromNullable(squawk),
+          emergency = Option.fromNullable(emergency),
+          category = Option.fromNullable(category),
+          navigationQnh = Option.fromNullable(navQnh),
+          navigationAltitudeMcp = Option.fromNullable(navAltitudeMcp),
+          navigationHeading = Option.fromNullable(navHeading),
+          navigationModes = navModes,
+          navigationIntegrityCategory = Option.fromNullable(navIntegrityCategory),
+          radiusOfContainment = Option.fromNullable(containmentRadius),
+          barometricAltitudeIntegrity = Option.fromNullable(baroAltIntegrity),
+          navigationAccuracyPosition = Option.fromNullable(navAccuracyPosition),
+          navigationAccuracyVelocity = Option.fromNullable(navAccuracyVelocity),
+          sourceIntegrityLevel = Option.fromNullable(sourceIntegrityLevel),
+          sourceIntegrityLevelType = Option.fromNullable(silType),
+          geometricVerticalAccuracy = Option.fromNullable(geometricVerticalAccuracy),
+          systemDesignAssurance = Option.fromNullable(systemDesignAssurance),
+          alertFlag = Option.fromNullable(alertFlag),
+          specialPurposeIndicator = Option.fromNullable(specialPurposeIndicator),
+          adsbVersion = Option.fromNullable(adsbVersion),
+          timeSinceLastMessage = Option.fromNullable(timeSinceLastMsg),
+          timeSinceLastPosition = Option.fromNullable(timeSinceLastPos),
+          totalMessages = Option.fromNullable(totalMessages),
+          signalStrength = Option.fromNullable(signalStrength),
+          multilateration = multilaterationData,
+          trafficInfoServiceBroadcast = trafficInfoServiceBroadcast,
+          receiverDistance = Option.fromNullable(receiverDist),
+          receiverDirection = Option.fromNullable(receiverDir))
 }
 
 interface AirplaneAPI {
-    suspend fun getAirplanesByLatLon(
-        lat: Double, lon: Double, radius: Double
-    ): Either<AppError, AirplanesLiveRouteDTO>
+  suspend fun getAirplanesByLatLon(
+      lat: Double,
+      lon: Double,
+      radius: Double
+  ): Either<AppError, AirplanesLiveRouteDTO>
 }
 
 @Single
-class AirplanesLiveAPI(private val httpClient: HttpClient): AirplaneAPI {
-    override suspend fun getAirplanesByLatLon(
-        lat: Double, lon: Double, radius: Double
-    ): Either<AppError, AirplanesLiveRouteDTO> {
-        return Either.catch {
-            val resp = httpClient.get {
-                url {
-                    protocol = URLProtocol.HTTPS
-                    host = "api.airplanes.live"
-                    appendPathSegments(
-                        "v2",
-                        "point",
-                        lat.toString(),
-                        lon.toString(),
-                        radius.toString(),
-                    )
-                }
-            }.body<AirplanesLiveRouteDTO>()
+class AirplanesLiveAPI(private val httpClient: HttpClient) : AirplaneAPI {
+  override suspend fun getAirplanesByLatLon(
+      lat: Double,
+      lon: Double,
+      radius: Double
+  ): Either<AppError, AirplanesLiveRouteDTO> {
+    return Either.catch {
+          val resp =
+              httpClient
+                  .get {
+                    url {
+                      protocol = URLProtocol.HTTPS
+                      host = "api.airplanes.live"
+                      appendPathSegments(
+                          "v2",
+                          "point",
+                          lat.toString(),
+                          lon.toString(),
+                          radius.toString(),
+                      )
+                    }
+                  }
+                  .body<AirplanesLiveRouteDTO>()
 
-            return Either.Right(resp)
-
-        }.mapLeft { AppError.NetworkError("Failed to fetch airplane info from airplanes.live", it) }
-    }
+          return Either.Right(resp)
+        }
+        .mapLeft { AppError.NetworkError("Failed to fetch airplane info from airplanes.live", it) }
+  }
 }

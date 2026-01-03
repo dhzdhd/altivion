@@ -20,34 +20,23 @@ import dev.dhzdhd.altivion.home.models.Airplane
 
 @Composable
 fun HeaderSection(airplane: Airplane) {
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                airplane.flight.getOrElse { "?" },
-                fontSize = 9.em,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.weight(1f)
-            )
-            Box(
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.primary
-                ) {
-                    Text(
-                        "In progress",
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                    )
-                }
-            }
+  Column {
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+      Text(
+          airplane.flight.getOrElse { "?" },
+          fontSize = 9.em,
+          fontWeight = FontWeight.Bold,
+          color = MaterialTheme.colorScheme.primary,
+          modifier = Modifier.weight(1f))
+      Box(contentAlignment = Alignment.CenterEnd) {
+        Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.primary) {
+          Text("In progress", modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
         }
-        Column {
-            Text(airplane.description.getOrElse { "Unknown aircraft" })
-            Text(airplane.registration.getOrElse { "Unknown registration" })
-        }
+      }
     }
+    Column {
+      Text(airplane.description.getOrElse { "Unknown aircraft" })
+      Text(airplane.registration.getOrElse { "Unknown registration" })
+    }
+  }
 }
