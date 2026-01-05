@@ -36,7 +36,7 @@ sealed interface HomeAction : Action {
 }
 
 @KoinViewModel
-class HomeViewModel(private val service: HomeService, private val logger: Logger) :
+class HomeViewModel(private val service: HomeService, logger: Logger) :
     ViewModel(), Store<HomeAction> {
   private val _logger = logger.withTag("HomeViewModel")
 

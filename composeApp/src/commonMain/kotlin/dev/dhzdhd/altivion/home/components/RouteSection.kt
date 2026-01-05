@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.dhzdhd.altivion.common.Value
@@ -42,14 +44,29 @@ fun AirportSection(routeAndAirline: RouteAndAirline) {
   Row(
       modifier = Modifier.fillMaxWidth(),
       horizontalArrangement = Arrangement.SpaceBetween,
-      verticalAlignment = Alignment.CenterVertically) {
+      verticalAlignment = Alignment.Top) {
         Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
+            Text(
+                text = routeAndAirline.route.origin.icaoCode,
+                style =
+                    MaterialTheme.typography.displaySmall.copy(
+                        fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
+                color = Color.White)
+            Text(
+                    text = "(${routeAndAirline.route.origin.iataCode})",
+            style =
+                MaterialTheme.typography.displaySmall.copy(
+                    fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
+            color = Color.White)
           Text(
-              text = routeAndAirline.route.origin.iataCode,
-              style =
-                  MaterialTheme.typography.displaySmall.copy(
-                      fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
-              color = Color.White)
+              modifier = Modifier.padding(vertical = 10.dp),
+              text = routeAndAirline.route.origin.name,
+              style = MaterialTheme.typography.bodyMedium,
+              color = Color(0xFFCCC2DC))
+            Text(
+                text = routeAndAirline.route.origin.municipality,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFFCCC2DC))
           Text(
               text = routeAndAirline.route.origin.countryName,
               style = MaterialTheme.typography.bodyMedium,
@@ -72,8 +89,8 @@ fun AirportSection(routeAndAirline: RouteAndAirline) {
                               brush =
                                   Brush.horizontalGradient(
                                       0f to Color(0xFF6750A4),
-                                      50f to Color(0xFF6750A4),
-                                      50f to Color(0x33FFFFFF),
+                                      0.5f to Color(0xFF6750A4),
+                                      0.5f to Color(0x33FFFFFF),
                                       1f to Color(0x33FFFFFF))))
               Text(
                   text = "07h 34m",
@@ -83,15 +100,32 @@ fun AirportSection(routeAndAirline: RouteAndAirline) {
             }
         Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
           Text(
-              text = routeAndAirline.route.destination.iataCode,
+              text = routeAndAirline.route.destination.icaoCode,
               style =
                   MaterialTheme.typography.displaySmall.copy(
                       fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
-              color = Color.White)
-          Text(
+              color = Color.White,
+              textAlign = TextAlign.Right)
+            Text(
+                text = "(${routeAndAirline.route.destination.iataCode})",
+                style =
+                    MaterialTheme.typography.displaySmall.copy(
+                        fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp),
+                color = Color.White,
+                textAlign = TextAlign.Right)
+            Text(
+                modifier = Modifier.padding(vertical = 10.dp),
+                text = routeAndAirline.route.destination.name,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFFCCC2DC),textAlign = TextAlign.Right)
+            Text(
+                text = routeAndAirline.route.destination.municipality,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFFCCC2DC),textAlign = TextAlign.Right)
+            Text(
               text = routeAndAirline.route.destination.countryName,
               style = MaterialTheme.typography.bodyMedium,
-              color = Color(0xFFCCC2DC))
+              color = Color(0xFFCCC2DC),textAlign = TextAlign.Right)
         }
       }
 }

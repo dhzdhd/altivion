@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import arrow.core.Either
 import arrow.core.None
 import arrow.core.Option
+import arrow.core.Some
 import arrow.core.flatten
 import arrow.core.toOption
 import com.mohamedrejeb.calf.permissions.ExperimentalPermissionsApi
@@ -52,11 +53,11 @@ import dev.dhzdhd.altivion.home.viewmodels.HomeAction
 import dev.dhzdhd.altivion.home.viewmodels.HomeViewModel
 import dev.dhzdhd.altivion.settings.viewmodels.MapStyle
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.debounce
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
+import org.maplibre.compose.camera.CameraPosition
 import org.maplibre.compose.camera.rememberCameraState
 import org.maplibre.compose.expressions.dsl.Feature.get
 import org.maplibre.compose.expressions.dsl.asNumber
@@ -85,10 +86,19 @@ import org.maplibre.compose.util.ClickResult
 import org.maplibre.spatialk.geojson.Feature
 import org.maplibre.spatialk.geojson.FeatureCollection
 import org.maplibre.spatialk.geojson.Point
+import org.maplibre.spatialk.geojson.Position
 
 private val AirplaneStateSaver =
     Saver<Airplane?, String>(
         save = { Json.encodeToString(it) }, restore = { Json.decodeFromString<Airplane?>(it) })
+
+private fun getAltitude(alt: Option<String>): String {
+  return when (alt) {
+    is None -> "0"
+    is Some if alt.value.contentEquals("ground") -> "0"
+    is Some -> alt.value
+  }
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class, FlowPreview::class)
 @Composable
@@ -136,22 +146,16 @@ fun InteractiveMap(
         }
   }
 
-  //    LaunchedEffect(Unit) {
-  //        val location = service.getLocation().getOrNull()
-  //        currentLocation = location.toOption()
-  //
-  //        if (location != null) {
-  //            cameraState.animateTo(
-  //                CameraPosition(
-  //                    target = Position(
-  //                        longitude = location.longitude,
-  //                        latitude = location.latitude
-  //                    ),
-  //                    zoom = 5.0
-  //                )
-  //            )
-  //        }
-  //    }
+  LaunchedEffect(Unit) {
+    val location = service.getLocation().getOrNull()
+
+    if (location != null) {
+      cameraState.animateTo(
+          CameraPosition(
+              target = Position(longitude = location.longitude, latitude = location.latitude),
+              zoom = 5.0))
+    }
+  }
 
   Box(modifier = Modifier.fillMaxSize()) {
     MaplibreMap(
@@ -190,7 +194,9 @@ fun InteractiveMap(
       if (airplaneValue is Value.Data) {
         val features =
             (airplaneValue as Value.Data<List<Airplane>>).data.map { airplane ->
-              val point = Point.fromGeoUri("geo:${airplane.latitude},${airplane.longitude}")
+              val point =
+                  Point.fromGeoUri(
+                      "geo:${airplane.latitude},${airplane.longitude},${getAltitude(airplane.barometricAltitude)}")
               Feature(geometry = point, properties = airplane)
             }
         val featureCollection = FeatureCollection(features)
