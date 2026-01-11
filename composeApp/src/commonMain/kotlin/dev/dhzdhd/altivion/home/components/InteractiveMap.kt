@@ -3,18 +3,30 @@ package dev.dhzdhd.altivion.home.components
 import altivion.composeapp.generated.resources.Res
 import altivion.composeapp.generated.resources.location
 import altivion.composeapp.generated.resources.plane
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -32,7 +44,11 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import arrow.core.Either
 import arrow.core.None
 import arrow.core.Option
@@ -45,6 +61,7 @@ import com.mohamedrejeb.calf.permissions.rememberPermissionState
 import dev.dhzdhd.altivion.common.AppError
 import dev.dhzdhd.altivion.common.Value
 import dev.dhzdhd.altivion.home.models.Airplane
+import dev.dhzdhd.altivion.home.models.Airport
 import dev.dhzdhd.altivion.home.models.Location
 import dev.dhzdhd.altivion.home.models.RouteAndAirline
 import dev.dhzdhd.altivion.home.repositories.AirplaneImage
@@ -92,6 +109,11 @@ private val AirplaneStateSaver =
     Saver<Airplane?, String>(
         save = { Json.encodeToString(it) }, restore = { Json.decodeFromString<Airplane?>(it) })
 
+private val AirportStateSaver =
+    Saver<Airport?, String>(
+        save = { Json.encodeToString(it) }, restore = { Json.decodeFromString<Airport?>(it) })
+
+
 private fun getAltitude(alt: Option<String>): String {
     return when (alt) {
         is None -> "0"
@@ -113,8 +135,10 @@ fun InteractiveMap(
     val styleState = rememberStyleState()
     val baseStyle = BaseStyle.Uri(mapStyle.url)
 
-    val openBottomSheetState = rememberSaveable { mutableStateOf(false) }
+    val openAirplaneBottomSheetState = rememberSaveable { mutableStateOf(false) }
+    val openAirportBottomSheetState = rememberSaveable { mutableStateOf(false) }
     var selectedAirplane by rememberSaveable(stateSaver = AirplaneStateSaver) { mutableStateOf(null) }
+    var selectedAirport by rememberSaveable(stateSaver = AirportStateSaver) { mutableStateOf(null) }
     var selectedAirlineAndRoute: Value<RouteAndAirline> by remember { mutableStateOf(Value.Loading) }
     var currentLocation: Option<Location> by remember { mutableStateOf(None) }
 
@@ -188,11 +212,24 @@ fun InteractiveMap(
                     id = "selected_airport",
                     source = source,
                     iconImage = image(locationPainter, drawAsSdf = true),
-                    iconColor = const(Color.Black),
-                    iconSize = const(0.041f),
+                    iconColor = const(MaterialTheme.colorScheme.secondary),
+                    iconSize = const(1.5f),
                     iconAllowOverlap = const(true),
                     iconIgnorePlacement = const(true),
-//                    textField = format(span(feature["name"].asString()))
+                    onClick = { features ->
+                        val airportProps = features.first().properties
+                        val icao = airportProps?.getValue("icaoCode").toString().trimStart('"').trimEnd('"')
+                        println(icao)
+                        val airport = if (route.origin.icaoCode.contentEquals(icao)) {
+                            route.origin
+                        } else {
+                            route.destination
+                        }
+
+                        selectedAirport = airport
+                        openAirportBottomSheetState.value = true
+                        ClickResult.Consume
+                    }
                 )
             }
             if (airplaneValue is Value.Data) {
@@ -234,7 +271,7 @@ fun InteractiveMap(
 
                         selectedAirplane = airplane
 
-                        openBottomSheetState.value = true
+                        openAirplaneBottomSheetState.value = true
                         ClickResult.Consume
                     },
                     iconImage = image(airplanePainter, drawAsSdf = true),
@@ -279,8 +316,149 @@ fun InteractiveMap(
         }
     }
 
-    if (openBottomSheetState.value) {
-        AirplaneInfoBottomSheet(selectedAirplane, openBottomSheetState, selectedAirlineAndRoute)
+    if (openAirplaneBottomSheetState.value) {
+        AirplaneInfoBottomSheet(selectedAirplane, openAirplaneBottomSheetState, selectedAirlineAndRoute)
+    }
+    if (openAirportBottomSheetState.value) {
+        AirportInfoBottomSheet(selectedAirport, openAirportBottomSheetState)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AirportInfoBottomSheet(
+    airport: Airport?,
+    openBottomSheetState: MutableState<Boolean>,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = { openBottomSheetState.value = false },
+        sheetState = sheetState,
+        containerColor = Color(0xFF1C1B1F),
+        contentColor = Color.White
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
+        ) {
+            // Header with Airport Codes
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = airport?.icaoCode ?: "?",
+                        style = MaterialTheme.typography.displayMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = (-2).sp
+                        ),
+                        color = Color.White
+                    )
+                    Text(
+                        text = airport?.iataCode ?: "?",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = airport?.name ?: "?",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.SemiBold
+                ),
+                color = Color.White,
+                lineHeight = 28.sp
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                InfoCard(
+                    title = "Location",
+                    items = listOf(
+                        InfoItem("City", airport?.municipality ?: "?"),
+                        InfoItem("Country", airport?.countryName ?: "?"),
+                        InfoItem("Country Code", airport?.countryISOName ?: "?")
+                    )
+                )
+
+                InfoCard(
+                    title = "Coordinates & Elevation",
+                    items = listOf(
+                        InfoItem("Latitude", airport?.latitude.toString()),
+                        InfoItem("Longitude", airport?.longitude.toString()),
+                        InfoItem("Elevation", "${airport?.elevation?.toInt()} ft")
+                    )
+                )
+            }
+        }
+    }
+}
+
+data class InfoItem(val label: String, val value: String)
+
+@Composable
+fun InfoCard(
+    title: String,
+    items: List<InfoItem>
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelMedium.copy(
+                    letterSpacing = 1.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 5.em
+                ),
+                color = MaterialTheme.colorScheme.primary
+            )
+            items.forEach { item ->
+                InfoRow(label = item.label, value = item.value)
+            }
+        }
+    }
+}
+
+@Composable
+fun InfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color(0xFFB3B3B3)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontWeight = FontWeight.Medium
+            ),
+            color = Color.White,
+            textAlign = TextAlign.End
+        )
     }
 }
 
