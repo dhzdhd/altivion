@@ -93,11 +93,11 @@ private val AirplaneStateSaver =
         save = { Json.encodeToString(it) }, restore = { Json.decodeFromString<Airplane?>(it) })
 
 private fun getAltitude(alt: Option<String>): String {
-  return when (alt) {
-    is None -> "0"
-    is Some if alt.value.contentEquals("ground") -> "0"
-    is Some -> alt.value
-  }
+    return when (alt) {
+        is None -> "0"
+        is Some if alt.value.contentEquals("ground") -> "0"
+        is Some -> alt.value
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class, FlowPreview::class)
@@ -107,168 +107,181 @@ fun InteractiveMap(
     mapStyle: MapStyle,
     service: HomeService = koinInject()
 ) {
-  val airplaneValue by viewModel.airplanes.collectAsState()
+    val airplaneValue by viewModel.airplanes.collectAsState()
 
-  val cameraState = rememberCameraState()
-  val styleState = rememberStyleState()
-  val baseStyle = BaseStyle.Uri(mapStyle.url)
+    val cameraState = rememberCameraState()
+    val styleState = rememberStyleState()
+    val baseStyle = BaseStyle.Uri(mapStyle.url)
 
-  val openBottomSheetState = rememberSaveable { mutableStateOf(false) }
-  var selectedAirplane by rememberSaveable(stateSaver = AirplaneStateSaver) { mutableStateOf(null) }
-  var selectedAirlineAndRoute: Value<RouteAndAirline> by remember { mutableStateOf(Value.Loading) }
-  var currentLocation: Option<Location> by remember { mutableStateOf(None) }
+    val openBottomSheetState = rememberSaveable { mutableStateOf(false) }
+    var selectedAirplane by rememberSaveable(stateSaver = AirplaneStateSaver) { mutableStateOf(null) }
+    var selectedAirlineAndRoute: Value<RouteAndAirline> by remember { mutableStateOf(Value.Loading) }
+    var currentLocation: Option<Location> by remember { mutableStateOf(None) }
 
-  val airplanePainter = painterResource(Res.drawable.plane)
-  val locationPainter = painterResource(Res.drawable.location)
+    val airplanePainter = painterResource(Res.drawable.plane)
+    val locationPainter = painterResource(Res.drawable.location)
 
-  val permissionState = rememberPermissionState(Permission.FineLocation)
-  val coroutineScope = rememberCoroutineScope()
+    val permissionState = rememberPermissionState(Permission.FineLocation)
+    val coroutineScope = rememberCoroutineScope()
 
-  LaunchedEffect(
-      selectedAirplane?.hex,
-      {
-        selectedAirlineAndRoute =
-            Value.fromEither(
-                selectedAirplane
-                    ?.let { service.getAirplaneRouteAndAirline(it.flight.map { s -> s.trim() }) }
-                    .toOption()
-                    .toEither {
-                      AppError.UnknownError("Route for selected airplane is not available")
-                    }
-                    .flatten())
-      })
+    LaunchedEffect(
+        selectedAirplane?.hex,
+        {
+            selectedAirlineAndRoute =
+                Value.fromEither(
+                    selectedAirplane
+                        ?.let { service.getAirplaneRouteAndAirline(it.flight.map { s -> s.trim() }) }
+                        .toOption()
+                        .toEither {
+                            AppError.UnknownError("Route for selected airplane is not available")
+                        }
+                        .flatten())
+        })
 
-  LaunchedEffect(Unit) {
-    snapshotFlow { cameraState.position }
-        .debounce(3000)
-        .collect { position ->
-          viewModel.dispatch(HomeAction.UpdateCameraState(position.target, position.zoom))
-        }
-  }
-
-  LaunchedEffect(Unit) {
-    val location = service.getLocation().getOrNull()
-
-    if (location != null) {
-      cameraState.animateTo(
-          CameraPosition(
-              target = Position(longitude = location.longitude, latitude = location.latitude),
-              zoom = 5.0))
-    }
-  }
-
-  Box(modifier = Modifier.fillMaxSize()) {
-    MaplibreMap(
-        baseStyle = baseStyle,
-        cameraState = cameraState,
-        styleState = styleState,
-        zoomRange = 2f..15f,
-        options = MapOptions(ornamentOptions = OrnamentOptions.OnlyLogo),
-    ) {
-      if (selectedAirlineAndRoute is Value.Data) {
-        val route = (selectedAirlineAndRoute as Value.Data<RouteAndAirline>).data.route
-        val originPoint = Point.fromGeoUri("geo:${route.origin.latitude},${route.origin.longitude}")
-        val origin = Feature(geometry = originPoint, properties = route.origin)
-
-        val destinationPoint =
-            Point.fromGeoUri("geo:${route.destination.latitude},${route.destination.longitude}")
-        val destination = Feature(geometry = destinationPoint, properties = route.destination)
-
-        val featureCollection = FeatureCollection(listOf(origin, destination))
-        val source =
-            rememberGeoJsonSource(
-                data = GeoJsonData.Features(featureCollection),
-            )
-
-        SymbolLayer(
-            id = "selected_airport",
-            source = source,
-            iconImage = image(locationPainter, drawAsSdf = true),
-            iconColor = const(Color.Black),
-            iconSize = const(0.041f),
-            iconAllowOverlap = const(true),
-            iconIgnorePlacement = const(true),
-            //                    textField = format(span(feature["name"].asString()))
-        )
-      }
-      if (airplaneValue is Value.Data) {
-        val features =
-            (airplaneValue as Value.Data<List<Airplane>>).data.map { airplane ->
-              val point =
-                  Point.fromGeoUri(
-                      "geo:${airplane.latitude},${airplane.longitude},${getAltitude(airplane.barometricAltitude)}")
-              Feature(geometry = point, properties = airplane)
+    LaunchedEffect(Unit) {
+        snapshotFlow { cameraState.position }
+            .debounce(3000)
+            .collect { position ->
+                viewModel.dispatch(HomeAction.UpdateCameraState(position.target, position.zoom))
             }
-        val featureCollection = FeatureCollection(features)
-        val source =
-            rememberGeoJsonSource(
-                data = GeoJsonData.Features(featureCollection),
-                options = GeoJsonOptions(minZoom = 0))
-
-        SymbolLayer(
-            id = "airplanes",
-            source = source,
-            onClick = { features ->
-              selectedAirlineAndRoute = Value.Loading
-
-              val airplaneProps = features.first().properties
-              val hexOption =
-                  airplaneProps?.getValue("hex").toOption().map {
-                    it.toString().trimStart('"').trimEnd('"')
-                  }
-              val hex = hexOption.getOrNull()
-              val airplane =
-                  (airplaneValue as Value.Data<List<Airplane>>).data.find {
-                    it.hex.contentEquals(hex)
-                  }
-
-              selectedAirplane = airplane
-
-              openBottomSheetState.value = true
-              ClickResult.Consume
-            },
-            iconImage = image(airplanePainter, drawAsSdf = true),
-            iconColor =
-                switch(
-                    condition(
-                        feature["hex"].asString().eq(const(selectedAirplane?.hex ?: "")),
-                        const(Color.Red)),
-                    fallback = const(Color.Blue)),
-            iconSize = const(0.041f),
-            iconAllowOverlap = const(true),
-            iconIgnorePlacement = const(true),
-            iconRotate = get("track").asNumber().plus(const(270.0f)),
-            iconRotationAlignment = const(IconRotationAlignment.Map),
-            //                    textField = feature["flight"].asString()
-        )
-      }
     }
-    Box(modifier = Modifier.fillMaxSize().padding(8.dp)) {
-      DisappearingScaleBar(
-          metersPerDp = cameraState.metersPerDpAtTarget,
-          zoom = cameraState.position.zoom,
-          modifier = Modifier.align(Alignment.TopStart),
-      )
-      DisappearingCompassButton(cameraState, modifier = Modifier.align(Alignment.TopEnd))
-      ExpandingAttributionButton(
-          cameraState = cameraState,
-          styleState = styleState,
-          modifier = Modifier.align(Alignment.TopEnd),
-          contentAlignment = Alignment.BottomEnd,
-      )
-    }
-    if (airplaneValue is Value.Loading) {
-      Box(modifier = Modifier.fillMaxSize()) {
-        CircularProgressIndicator(
-            modifier = Modifier.align(Alignment.Center),
-            color = MaterialTheme.colorScheme.inversePrimary)
-      }
-    }
-  }
 
-  if (openBottomSheetState.value) {
-    AirplaneInfoBottomSheet(selectedAirplane, openBottomSheetState, selectedAirlineAndRoute)
-  }
+    LaunchedEffect(Unit) {
+        val location = service.getLocation().getOrNull()
+
+        if (location != null) {
+            cameraState.animateTo(
+                CameraPosition(
+                    target = Position(longitude = location.longitude, latitude = location.latitude),
+                    zoom = 5.0
+                )
+            )
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        MaplibreMap(
+            baseStyle = baseStyle,
+            cameraState = cameraState,
+            styleState = styleState,
+            zoomRange = 2f..15f,
+            options = MapOptions(ornamentOptions = OrnamentOptions.OnlyLogo),
+        ) {
+            if (selectedAirlineAndRoute is Value.Data) {
+                val route = (selectedAirlineAndRoute as Value.Data<RouteAndAirline>).data.route
+                val originPoint =
+                    Point.fromGeoUri("geo:${route.origin.latitude},${route.origin.longitude}")
+                val origin = Feature(geometry = originPoint, properties = route.origin)
+
+                val destinationPoint =
+                    Point.fromGeoUri("geo:${route.destination.latitude},${route.destination.longitude}")
+                val destination =
+                    Feature(geometry = destinationPoint, properties = route.destination)
+
+                val featureCollection = FeatureCollection(listOf(origin, destination))
+                val source =
+                    rememberGeoJsonSource(
+                        data = GeoJsonData.Features(featureCollection),
+                    )
+
+                SymbolLayer(
+                    id = "selected_airport",
+                    source = source,
+                    iconImage = image(locationPainter, drawAsSdf = true),
+                    iconColor = const(Color.Black),
+                    iconSize = const(0.041f),
+                    iconAllowOverlap = const(true),
+                    iconIgnorePlacement = const(true),
+//                    textField = format(span(feature["name"].asString()))
+                )
+            }
+            if (airplaneValue is Value.Data) {
+                val features =
+                    (airplaneValue as Value.Data<List<Airplane>>).data.map { airplane ->
+                        val point =
+                            Point.fromGeoUri(
+                                "geo:${airplane.latitude},${airplane.longitude},${
+                                    getAltitude(
+                                        airplane.barometricAltitude
+                                    )
+                                }"
+                            )
+                        Feature(geometry = point, properties = airplane)
+                    }
+                val featureCollection = FeatureCollection(features)
+                val source =
+                    rememberGeoJsonSource(
+                        data = GeoJsonData.Features(featureCollection),
+                        options = GeoJsonOptions(minZoom = 0)
+                    )
+
+                SymbolLayer(
+                    id = "airplanes",
+                    source = source,
+                    onClick = { features ->
+                        selectedAirlineAndRoute = Value.Loading
+
+                        val airplaneProps = features.first().properties
+                        val hexOption =
+                            airplaneProps?.getValue("hex").toOption().map {
+                                it.toString().trimStart('"').trimEnd('"')
+                            }
+                        val hex = hexOption.getOrNull()
+                        val airplane =
+                            (airplaneValue as Value.Data<List<Airplane>>).data.find {
+                                it.hex.contentEquals(hex)
+                            }
+
+                        selectedAirplane = airplane
+
+                        openBottomSheetState.value = true
+                        ClickResult.Consume
+                    },
+                    iconImage = image(airplanePainter, drawAsSdf = true),
+                    iconColor =
+                        switch(
+                            condition(
+                                feature["hex"].asString().eq(const(selectedAirplane?.hex ?: "")),
+                                const(MaterialTheme.colorScheme.tertiaryFixed)
+                            ),
+                            fallback = const(MaterialTheme.colorScheme.primary)
+                        ),
+                    iconSize = const(0.041f),
+                    iconAllowOverlap = const(true),
+                    iconIgnorePlacement = const(true),
+                    iconRotate = get("track").asNumber().plus(const(270.0f)),
+                    iconRotationAlignment = const(IconRotationAlignment.Map),
+                    //                    textField = feature["flight"].asString()
+                )
+            }
+        }
+        Box(modifier = Modifier.fillMaxSize().padding(8.dp)) {
+            DisappearingScaleBar(
+                metersPerDp = cameraState.metersPerDpAtTarget,
+                zoom = cameraState.position.zoom,
+                modifier = Modifier.align(Alignment.TopStart),
+            )
+            DisappearingCompassButton(cameraState, modifier = Modifier.align(Alignment.TopEnd))
+            ExpandingAttributionButton(
+                cameraState = cameraState,
+                styleState = styleState,
+                modifier = Modifier.align(Alignment.TopEnd),
+                contentAlignment = Alignment.BottomEnd,
+            )
+        }
+        if (airplaneValue is Value.Loading) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = MaterialTheme.colorScheme.inversePrimary
+                )
+            }
+        }
+    }
+
+    if (openBottomSheetState.value) {
+        AirplaneInfoBottomSheet(selectedAirplane, openBottomSheetState, selectedAirlineAndRoute)
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -279,45 +292,47 @@ fun AirplaneInfoBottomSheet(
     routeAndAirline: Value<RouteAndAirline>,
     homeService: HomeService = koinInject()
 ) {
-  var skipPartiallyExpanded by rememberSaveable { mutableStateOf(false) }
-  val bottomSheetState =
-      rememberModalBottomSheetState(
-          skipPartiallyExpanded = skipPartiallyExpanded,
-      )
-  var airplaneImage by remember { mutableStateOf<Value<AirplaneImage>>(Value.Loading) }
+    var skipPartiallyExpanded by rememberSaveable { mutableStateOf(false) }
+    val bottomSheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = skipPartiallyExpanded,
+        )
+    var airplaneImage by remember { mutableStateOf<Value<AirplaneImage>>(Value.Loading) }
 
-  if (airplane != null) {
-    LaunchedEffect(airplane) {
-      val req = homeService.getAirplaneImage(airplane)
-      airplaneImage =
-          when (req) {
-            is Either.Right -> Value.Data(req.value)
-            is Either.Left -> Value.Error(req.value)
-          }
+    if (airplane != null) {
+        LaunchedEffect(airplane) {
+            val req = homeService.getAirplaneImage(airplane)
+            airplaneImage =
+                when (req) {
+                    is Either.Right -> Value.Data(req.value)
+                    is Either.Left -> Value.Error(req.value)
+                }
+        }
     }
-  }
 
-  ModalBottomSheet(
-      onDismissRequest = { openBottomSheetState.value = false },
-      sheetState = bottomSheetState,
-      properties = ModalBottomSheetProperties(shouldDismissOnClickOutside = false),
-      scrimColor = Color.Transparent) {
+    ModalBottomSheet(
+        onDismissRequest = { openBottomSheetState.value = false },
+        sheetState = bottomSheetState,
+//        properties = ModalBottomSheetProperties(shouldDismissOnClickOutside = false),
+        scrimColor = Color.Transparent
+    ) {
         Column(
             modifier =
                 Modifier.padding(all = 16.dp)
                     .verticalScroll(
                         state = rememberScrollState(),
                     ),
-            verticalArrangement = Arrangement.spacedBy(16.dp)) {
-              if (airplane != null) {
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            if (airplane != null) {
                 HeaderSection(airplane)
                 ImageSection(airplaneImage)
                 RouteSection(routeAndAirline)
                 FlightMetricsSection(airplane)
                 FlightInfoSection(airplane)
-              } else {
+            } else {
                 Text("Error in retrieving aircraft details")
-              }
             }
-      }
+        }
+    }
 }

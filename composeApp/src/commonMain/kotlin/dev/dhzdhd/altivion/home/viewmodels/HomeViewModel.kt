@@ -22,94 +22,95 @@ import org.koin.android.annotation.KoinViewModel
 import org.maplibre.spatialk.geojson.Position
 
 data class HomeState(val position: Position, val zoom: Double) {
-  companion object {
-    val Default = HomeState(Position(0.0, 0.0), 0.0)
-  }
+    companion object {
+        val Default = HomeState(Position(0.0, 0.0), 0.0)
+    }
 }
 
 sealed interface HomeAction : Action {
-  data object GetAllItems : HomeAction
+    data object GetAllItems : HomeAction
 
-  data class ShowSnackBar(val message: String) : HomeAction
+    data class ShowSnackBar(val message: String) : HomeAction
 
-  data class UpdateCameraState(val position: Position, val zoom: Double) : HomeAction
+    data class UpdateCameraState(val position: Position, val zoom: Double) : HomeAction
 }
 
 @KoinViewModel
 class HomeViewModel(private val service: HomeService, logger: Logger) :
     ViewModel(), Store<HomeAction> {
-  private val _logger = logger.withTag("HomeViewModel")
+    private val _logger = logger.withTag("HomeViewModel")
 
-  private val _airplanesState = MutableStateFlow<Value<List<Airplane>>>(Value.Loading)
-  val airplanes = _airplanesState.asStateFlow()
+    private val _airplanesState = MutableStateFlow<Value<List<Airplane>>>(Value.Loading)
+    val airplanes = _airplanesState.asStateFlow()
 
-  private val _snackBarEvents = MutableSharedFlow<String>()
-  val snackBarEvents = _snackBarEvents.asSharedFlow()
+    private val _snackBarEvents = MutableSharedFlow<String>()
+    val snackBarEvents = _snackBarEvents.asSharedFlow()
 
-  private val _state = MutableStateFlow(HomeState.Default)
-  val state = _state.asStateFlow()
+    private val _state = MutableStateFlow(HomeState.Default)
+    val state = _state.asStateFlow()
 
-  private var fetchJob: Job? = null
+    private var fetchJob: Job? = null
 
-  init {
-    startFetching()
-  }
-
-  private fun startFetching() {
-    fetchJob?.cancel()
-    fetchJob =
-        service
-            .getAirplanes(
-                state.value.position.latitude,
-                state.value.position.longitude,
-                calculateRadius(state.value.zoom))
-            .onEach { result ->
-              _airplanesState.value =
-                  when (result) {
-                    is Either.Left -> Value.Error(result.value)
-                    is Either.Right -> Value.Data(result.value)
-                  }
-              println(_airplanesState.value)
-            }
-            .launchIn(viewModelScope)
-  }
-
-  private fun stopFetching() {
-    fetchJob?.cancel()
-    fetchJob = null
-  }
-
-  private fun restartFetching() {
-    stopFetching()
-    startFetching()
-  }
-
-  override fun dispatch(action: HomeAction) {
-    when (action) {
-      is HomeAction.GetAllItems -> println("")
-      is HomeAction.ShowSnackBar -> showSnackBar(action.message)
-      is HomeAction.UpdateCameraState -> updateCameraState(action.position, action.zoom)
+    init {
+        startFetching()
     }
-  }
 
-  @Log
-  private fun updateCameraState(position: Position, zoom: Double) {
-    _logger.i { "Entered updateCameraState with position: $position and zoom: $zoom" }
-    _state.value = _state.value.copy(position = position, zoom = zoom)
-    restartFetching()
-  }
+    private fun startFetching() {
+        fetchJob?.cancel()
+        fetchJob =
+            service
+                .getAirplanes(
+                    state.value.position.latitude,
+                    state.value.position.longitude,
+                    calculateRadius(state.value.zoom)
+                )
+                .onEach { result ->
+                    // Show stale data on error (needs refactoring when continuous errors
+                    when (result) {
+                        is Either.Left -> println(Value.Error(result.value))
+                        is Either.Right -> _airplanesState.value = Value.Data(result.value)
+                    }
+                    println(_airplanesState.value)
+                }
+                .launchIn(viewModelScope)
+    }
 
-  private fun showSnackBar(message: String) {
-    viewModelScope.launch { _snackBarEvents.emit(message) }
-  }
+    private fun stopFetching() {
+        fetchJob?.cancel()
+        fetchJob = null
+    }
 
-  private fun calculateRadius(zoom: Double): Double {
-    val clampedZoom = zoom.coerceIn(2.0, 15.0)
-    return 2500.0 / clampedZoom
-  }
+    private fun restartFetching() {
+        stopFetching()
+        startFetching()
+    }
 
-  override fun onCleared() {
-    super.onCleared()
-    stopFetching()
-  }
+    override fun dispatch(action: HomeAction) {
+        when (action) {
+            is HomeAction.GetAllItems -> println("")
+            is HomeAction.ShowSnackBar -> showSnackBar(action.message)
+            is HomeAction.UpdateCameraState -> updateCameraState(action.position, action.zoom)
+        }
+    }
+
+    @Log
+    private fun updateCameraState(position: Position, zoom: Double) {
+        _logger.i { "Entered updateCameraState with position: $position and zoom: $zoom" }
+        _state.value = _state.value.copy(position = position, zoom = zoom)
+        restartFetching()
+    }
+
+    private fun showSnackBar(message: String) {
+        viewModelScope.launch { _snackBarEvents.emit(message) }
+    }
+
+    private fun calculateRadius(zoom: Double): Double {
+        val clampedZoom = zoom.coerceIn(2.0, 15.0)
+        return 2500.0 / clampedZoom
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopFetching()
+    }
 }

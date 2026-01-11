@@ -38,7 +38,7 @@ class HomeService(
             airplaneApi.getAirplanesByLatLon(latitude, longitude, radius).map {
               it.aircraft.map(AirplaneDTO::toAirplane)
             })
-        delay(2000)
+        delay(10000)
       }
     }
   }
